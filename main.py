@@ -10,7 +10,7 @@ from resources import Resources
 from cooldown import Cooldown
 from window import find_rect
 from lutils import wait_league_window
-from ldetect import is_camera_locked, is_level_up, get_minimap_coor, get_minimap_areas
+from ldetect import is_camera_locked, is_level_up, get_minimap_coor, get_minimap_areas, get_objects
 from bot import goto_lane, level_up
 from constants import LEVEL_UP_SEQUENCE
 
@@ -19,7 +19,8 @@ def main():
     '''Main function of the script'''
     logger = CliLogger()
     analytics = Analytics(logger)
-    analytics.ignore = ['screenshot', 'get_minimap_coor', 'get_minimap_areas']
+    analytics.ignore = ['screenshot', 'get_minimap_coor',
+                        'get_minimap_areas', 'get_objects']
     screen = Screen()
     resources = Resources()
     cooldown = Cooldown({'goto_lane': 20})
@@ -42,6 +43,7 @@ def main():
         areas = get_minimap_areas(analytics, resources.images, coor)
         if not areas['is_map_divide']:
             goto_lane(cooldown)
+        print(get_objects(analytics, img, (227, 0, 228), (255, 1, 255)))
         analytics.end_timer()
         time.sleep(1)
 
