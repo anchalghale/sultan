@@ -1,4 +1,6 @@
 ''' Stores the constants of the script '''
+CAMERA_LOCK = (794, 756)
+
 MINIMAP_AREAS = [
     {
         'name': 'is_base',

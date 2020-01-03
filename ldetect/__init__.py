@@ -3,7 +3,7 @@ import cv2
 
 from cutils import coor_offset, crop, find_center
 
-from .constants import MINIMAP_AREAS
+from .constants import MINIMAP_AREAS, CAMERA_LOCK
 from .exceptions import NoCharacterInMinimap
 
 
@@ -56,3 +56,8 @@ def get_minimap_areas(analytics, imgs, coor):
         output[area['name']] = area['mappings'][tuple(pixel)]
     analytics.end_timer('get_minimap_areas')
     return output
+
+
+def is_camera_locked(img):
+    ''' Returns is the camera is locked '''
+    return (img[CAMERA_LOCK[::-1]] == [49, 65, 52]).all()
