@@ -3,7 +3,7 @@ import cv2
 
 from cutils import coor_offset, crop, find_center
 
-from .constants import MINIMAP_AREAS, CAMERA_LOCK
+from .constants import MINIMAP_AREAS, CAMERA_LOCK, LEVEL_Q, LEVEL_W, LEVEL_E, LEVEL_R
 from .exceptions import NoCharacterInMinimap
 
 
@@ -61,3 +61,13 @@ def get_minimap_areas(analytics, imgs, coor):
 def is_camera_locked(img):
     ''' Returns is the camera is locked '''
     return (img[CAMERA_LOCK[::-1]] == [49, 65, 52]).all()
+
+
+def is_level_up(img):
+    ''' Returns is the camera is locked '''
+    return {
+        'Q': (img[LEVEL_Q[::-1]] == [255, 251, 173]).all(),
+        'W': (img[LEVEL_W[::-1]] == [255, 251, 173]).all(),
+        'E': (img[LEVEL_E[::-1]] == [255, 251, 173]).all(),
+        'R': (img[LEVEL_R[::-1]] == [255, 251, 173]).all(),
+    }

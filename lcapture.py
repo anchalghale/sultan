@@ -1,7 +1,6 @@
 ''' Main module of the script '''
 import uuid
 
-import d3dshot
 import cv2
 
 from analytics import Analytics
@@ -17,7 +16,7 @@ def main():
     logger = CliLogger()
     analytics = Analytics(logger)
     screen = Screen()
-    hwnd = wait_league_window((0, 0, 1024, 768))
+    hwnd = wait_league_window(logger, (0, 0, 1024, 768))
 
     def name():
         return f'helper/output/{uuid.uuid1()}.png'

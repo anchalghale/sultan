@@ -1,4 +1,6 @@
 ''' Cv2 utility functions '''
+import random
+
 import cv2
 
 
@@ -8,6 +10,14 @@ def coor_offset(coor, offset, size):
     y = min(coor[0] + offset[1], h-1)
     x = min(coor[0] + offset[0], w-1)
     return (y, x)
+
+
+def humanize(coor, max_offset=5):
+    ''' Humaizes a coordinate '''
+    x, y = coor
+    x = x + random.randint(-max_offset, max_offset)
+    y = y + random.randint(-max_offset, max_offset)
+    return (x, y)
 
 
 def crop(img, rect):

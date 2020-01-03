@@ -16,9 +16,9 @@ def check_and_wait():
     return False
 
 
-def wait_league_window(rect):
+def wait_league_window(logger, rect):
     ''' Waits league of legends window '''
-    print('Wating for the league of legends window...')
+    logger.log('Wating for the league of legends window...')
     while True:
         try:
             hwnd = find_window_hwnds(r'League of Legends \(TM\) Client')[0]

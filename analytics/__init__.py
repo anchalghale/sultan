@@ -8,9 +8,12 @@ class Analytics:
     def __init__(self, logger):
         self.logger = logger
         self.timers = {}
+        self.ignore = []
 
     def start_timer(self, phase='', message=None):
         '''Keeps track of start time of each phase and logs the message'''
+        if phase in self.ignore:
+            return
         self.timers[phase] = time.time()
         if message is not None:
             self.logger.log(f'{message}...')
@@ -23,6 +26,8 @@ class Analytics:
 
     def end_timer(self, phase='', message=None):
         '''Calculates and logs the time elapsed and stores it in a dict'''
+        if phase in self.ignore:
+            return
         start_time = self.timers.pop(phase)
         time_elapsed = time.time() - start_time
         if message is not None:
