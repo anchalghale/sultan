@@ -21,7 +21,7 @@ class Logger:
 class CliLogger(Logger):
     ''' A cli logger '''
 
-    def __init__(self, log_format):
+    def __init__(self, log_format='%H:%M:%S'):
         Logger.__init__(self, log_format)
 
     def set_entry(self, name, value):
@@ -36,7 +36,7 @@ class CliLogger(Logger):
 class TkinterLogger(Logger):
     ''' A wrapper class around the pygubu builder for easy gui building '''
 
-    def __init__(self, builder, log_format):
+    def __init__(self, builder, log_format='%H:%M:%S'):
         self.builder = builder
         Logger.__init__(self, log_format)
 

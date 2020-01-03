@@ -1,7 +1,7 @@
 ''' Object detection module '''
 import cv2
 
-from utils import coor_offset, crop, find_center
+from cutils import coor_offset, crop, find_center
 
 from .constants import MINIMAP_AREAS
 from .exceptions import NoCharacterInMinimap
@@ -36,7 +36,7 @@ def detect(analytics, img, start, end):
 def get_minimap_coor(analytics, img):
     ''' Finds the position of character in the minimap '''
     analytics.start_timer('get_minimap_coor', 'Finding minimap coordiantes')
-    map_ = crop(img, (834, 577), (183, 183))
+    map_ = crop(img, (834, 577, 183, 183))
     img = cv2.inRange(map_, (200, 200, 200), (255, 255, 255))
     contours, _ = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     if contours == []:

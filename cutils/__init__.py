@@ -10,9 +10,9 @@ def coor_offset(coor, offset, size):
     return (y, x)
 
 
-def crop(img, coor, size):
+def crop(img, rect):
     ''' Crops an cv2 image using coordinate and size '''
-    return img[coor[1]:coor[1]+size[1], coor[0]:coor[0]+size[0]]
+    return img[rect[1]:rect[1]+rect[3], rect[0]:rect[0]+rect[2]]
 
 
 def find_center(rect):
