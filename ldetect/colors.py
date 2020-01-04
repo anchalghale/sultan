@@ -2,7 +2,7 @@
 
 
 SMALL_HP_BARS = {
-    'ally_minion': (77, 149, 208),
-    'enemy_minion': (185, 85, 86),
+    'ally_minion': (98, 167, 231),
+    'enemy_minion': (224, 114, 112),
     'plant': (180, 136, 92),
 }
