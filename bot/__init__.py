@@ -11,7 +11,7 @@ def goto_lane(cooldown):
     if not cooldown.is_available('goto_lane'):
         return
     print('moving to lane')
-    mouse.move(*humanize((862, 607)))
+    mouse.move(*humanize((931, 663)))
     mouse.right_click()
     cooldown.start_timer('goto_lane')
 
@@ -22,7 +22,7 @@ def evade(cooldown):
     if not cooldown.is_available('evade'):
         return
     print('evading')
-    mouse.move(*humanize((78, 365)))
+    mouse.move(*humanize((27, 730)))
     mouse.right_click()
     cooldown.start_timer('evade')
 
