@@ -16,6 +16,5 @@ def draw_objects(img, objects, wait=True):
     # img = cv2.line(img, (0, 0), img.shape[:2][::-1], (0, 255, 0))
     cv2.imshow('', img)
     if wait:
-        cv2.waitKey()
-    else:
-        cv2.waitKey(1)
+        return cv2.waitKey()
+    return cv2.waitKey(1)

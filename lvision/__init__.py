@@ -4,7 +4,7 @@ import numpy
 
 from cutils import coor_offset, crop, find_center, get_color_diff
 
-from .abilities import get_level_ups, get_abilities
+from .abilities import get_level_ups, get_abilities, get_ability_points
 
 from .constants import MINIMAP_AREAS, CAMERA_LOCK, LEVEL_Q, LEVEL_W, LEVEL_E, LEVEL_R
 from .colors import SMALL_HP_BARS
