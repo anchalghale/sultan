@@ -17,6 +17,7 @@ from lutils import wait_league_window
 from lvision.filter import filter_objects
 from lvision.state import get_game_state
 from lvision import (is_camera_locked, get_level_ups, get_ability_points,
+                     get_abilities,
                      get_minimap_coor, get_minimap_areas, get_objects)
 
 
@@ -28,30 +29,35 @@ from constants import LEVEL_UP_SEQUENCE, ANALYTICS_IGNORE, COOLDOWNS
 Utility = collections.namedtuple('Utility', 'logger screen resources analytics cooldown')
 
 
-def tick(utility, handle):
+def tick(utility):
     ''' Simulates a single tick of the bot '''
     utility.analytics.start_timer()
     if keyboard.is_pressed('x'):
         raise BotExitException
-    img = utility.screen.screenshot(utility.analytics, find_rect(handle))
+    img = utility.screen.d3d.get_latest_frame()
     if not is_camera_locked(img):
         keyboard.press_and_release('y')
     level_ups = get_level_ups(img)
     level_up(level_ups, get_ability_points(img), LEVEL_UP_SEQUENCE)
     coor = get_minimap_coor(utility.analytics, img)
     areas = get_minimap_areas(utility.analytics, utility.resources.images, coor)
+    abilities = get_abilities(img)
     obj_list = get_objects(utility.analytics, img, (190, 0, 190), (255, 20, 255))
     objects = filter_objects(obj_list)
-    state = get_game_state(obj_list, areas)
+    state = get_game_state(objects, areas)
 
-    if state.is_enemy_turret and not state.is_shielded:
+    if areas['is_turret'] and not state.is_shielded:
         evade(utility.cooldown)
         raise BotContinueException
     if state.is_enemy_turret and state.is_shielded:
+        if abilities.w:
+            keyboard.press_and_release('w')
         mouse.move(*objects.turrets[0]['coor'])
         mouse.click()
         raise BotContinueException
     if objects.enemy_minions != []:
+        if abilities.w:
+            keyboard.press_and_release('w')
         objects.enemy_minions.sort(key=lambda o: o['health'])
         mouse.move(*objects.enemy_minions[0]['center'])
         mouse.click()
@@ -77,17 +83,19 @@ def main():
     cooldown = Cooldown(COOLDOWNS)
     analytics.ignore = ANALYTICS_IGNORE
     resources.load(analytics)
-    hwnd = wait_league_window(logger, (0, 0, 1024, 768))
+    handle = wait_league_window(logger, (0, 0, 1024, 768))
     logger.log('Press and hold x to exit bot.')
+    screen.d3d.capture(target_fps=10, region=find_rect(handle))
     while True:
         try:
-            tick(Utility(logger, screen, resources, analytics, cooldown), hwnd)
+            tick(Utility(logger, screen, resources, analytics, cooldown))
             analytics.end_timer()
             time.sleep(1)
         except BotContinueException:
             analytics.end_timer()
             time.sleep(1)
         except BotExitException:
+            screen.d3d.stop()
             break
 
 

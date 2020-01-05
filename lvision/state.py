@@ -4,10 +4,10 @@ import collections
 State = collections.namedtuple('State', 'is_shielded is_enemy_turret')
 
 
-def get_game_state(filtered_objs, areas):
+def get_game_state(objects, areas):
     ''' Returns the variables related to current state of game '''
-    shield_minions = filtered_objs.get('shield_minions')
-    turrets = filtered_objs.get('turrets')
+    shield_minions = objects.shield_minions
+    turrets = objects.turrets
     is_shielded = (len(shield_minions) > 1 or
                    (len(shield_minions) == 1 and shield_minions[0]['health'] >= 50))
     is_enemy_turret = turrets != [] and areas['is_chaos_side']
