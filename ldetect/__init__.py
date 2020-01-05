@@ -17,7 +17,7 @@ def get_small_hp_value(hp_img):
         return 60
     reference = hp_img[1]
     for i, value in enumerate(hp_img):
-        if get_color_diff(reference, value) > 20:
+        if get_color_diff(reference, value) > 50:
             return i
     return 60
 
@@ -42,6 +42,7 @@ def identify_object(img, coor):
         output['center'] = coor[0]+30, coor[1]+35
         output['is_order_side'] = output['center'][1] / \
             output['center'][0] > img.shape[0]/img.shape[1]
+        output['is_turret'] = tuple(img[coor_offset(coor, (-1, 0), size)]) == (0, 36, 21)
     return output
 
 

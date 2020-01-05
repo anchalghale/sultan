@@ -17,7 +17,7 @@ def main():
     resources = Resources()
     resources.load(analytics)
 
-    img_bgr = cv2.imread('screenshots/Screen62.png')
+    img_bgr = cv2.imread('screenshots/Screen144.png')
     img = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
 
     analytics.start_timer()

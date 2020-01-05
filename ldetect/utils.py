@@ -9,7 +9,7 @@ def draw_objects(img, objects, wait=True):
             img = cv2.circle(img, obj['center'], 7, (0, 0, 255), -1)
     for obj in objects:
         if 'health' in obj:
-            text = f'''{obj['name']}, {obj['health']}, {obj['order_side']}'''
+            text = f'''{obj['name']}, {obj['health']}, {obj['is_turret']}'''
         else:
             text = f'''{obj['name']}'''
         img = cv2.putText(img, text, obj['coor'], 1, 0.8, (0, 255, 0))

@@ -1,5 +1,6 @@
 ''' Main module of the script '''
 import time
+import collections
 
 import keyboard
 import mouse
@@ -10,93 +11,82 @@ from screen import Screen
 from resources import Resources
 from cooldown import Cooldown
 from window import find_rect
+
 from lutils import wait_league_window
 from ldetect import is_camera_locked, is_level_up, get_minimap_coor, get_minimap_areas, get_objects
+from ldetect.filter import filter_objects
+from ldetect.state import get_game_state
+
 from bot import goto_lane, goto_enemy_base, evade, level_up
-from constants import LEVEL_UP_SEQUENCE
+from bot.exceptions import BotContinueException, BotExitException
+
+from constants import LEVEL_UP_SEQUENCE, ANALYTICS_IGNORE, COOLDOWNS
 
 
-def filter_objects(objs):
-    ''' Filters the objects that are detected '''
-    output = {}
-    output['enemy_minions'] = filter(lambda o: o['name'] == 'enemy_minion', objs)
-    output['ally_minions'] = filter(lambda o: o['name'] == 'ally_minion', objs)
-    output['turrets'] = filter(lambda o: o['name'] == 'turret', objs)
-    output['shield_minions'] = filter(
-        lambda o: o['name'] == 'ally_minion' and not o['is_order_side'], objs)
-    for key, value in output.items():
-        output[key] = list(value)
-    return output
+Utility = collections.namedtuple('Utility', 'logger screen resources analytics cooldown')
+
+
+def tick(utility, handle):
+    ''' Simulates a single tick of the bot '''
+    utility.analytics.start_timer()
+    if keyboard.is_pressed('x'):
+        raise BotExitException
+    img = utility.screen.screenshot(utility.analytics, find_rect(handle))
+    if not is_camera_locked(img):
+        keyboard.press_and_release('y')
+    level_ups = is_level_up(img)
+    level_up(level_ups, LEVEL_UP_SEQUENCE)
+    coor = get_minimap_coor(utility.analytics, img)
+    areas = get_minimap_areas(utility.analytics, utility.resources.images, coor)
+    obj_list = get_objects(utility.analytics, img, (190, 0, 190), (255, 20, 255))
+    objects = filter_objects(obj_list)
+    state = get_game_state(obj_list, areas)
+
+    if state.is_enemy_turret and not state.is_shielded:
+        evade(utility.cooldown)
+        raise BotContinueException
+    if state.is_enemy_turret and state.is_shielded:
+        mouse.move(*objects.turrets[0]['coor'])
+        mouse.click()
+        raise BotContinueException
+    if objects.enemy_minions != []:
+        objects.enemy_minions.sort(key=lambda o: o['health'])
+        mouse.move(*objects.enemy_minions[0]['center'])
+        mouse.click()
+        raise BotContinueException
+    if areas['is_turret']:
+        if len(objects.shield_minions) <= 2:
+            goto_lane(utility.cooldown)
+            raise BotContinueException
+    if not (areas['is_chaos_side'] and areas['is_lane']):
+        goto_lane(utility.cooldown)
+        raise BotContinueException
+    if len(objects.shield_minions) > 2:
+        goto_enemy_base(utility.cooldown)
 
 
 def main():
     '''Main function of the script'''
+
     logger = CliLogger()
-    analytics = Analytics(logger)
-    analytics.ignore = ['screenshot', 'get_minimap_coor',
-                        'get_minimap_areas', 'get_objects']
     screen = Screen()
     resources = Resources()
-    cooldown = Cooldown({'goto_lane': 20, 'goto_enemy_base': 3, 'evade': 0.2})
+    analytics = Analytics(logger)
+    cooldown = Cooldown(COOLDOWNS)
+    analytics.ignore = ANALYTICS_IGNORE
     resources.load(analytics)
-
     hwnd = wait_league_window(logger, (0, 0, 1024, 768))
-    time.sleep(1)
-
     logger.log('Press and hold x to exit bot.')
     while True:
-        analytics.start_timer()
-        if keyboard.is_pressed('x'):
+        try:
+            tick(Utility(logger, screen, resources, analytics, cooldown), hwnd)
+            analytics.end_timer()
+            time.sleep(1)
+        except BotContinueException:
+            analytics.end_timer()
+            time.sleep(1)
+        except BotExitException:
             break
-        img = screen.screenshot(analytics, find_rect(hwnd))
-        if not is_camera_locked(img):
-            keyboard.press_and_release('y')
-        level_ups = is_level_up(img)
-        level_up(level_ups, LEVEL_UP_SEQUENCE)
-        coor = get_minimap_coor(analytics, img)
-        areas = get_minimap_areas(analytics, resources.images, coor)
-        objs = get_objects(analytics, img, (190, 0, 190), (255, 20, 255))
-        objs = filter_objects(objs)
-        enemy_minions = objs.get('enemy_minions')
-        shield_minions = objs.get('shield_minions')
-        turrets = objs.get('turrets')
-
-        if (turrets != [] and
-                areas['is_chaos_side'] and
-                areas['is_turret'] and len(shield_minions) <= 0):
-            evade(cooldown)
-            analytics.end_timer()
-            time.sleep(1)
-            continue
-        if turrets != [] and areas['is_chaos_side'] and len(shield_minions) > 0:
-            mouse.move(*turrets[0]['coor'])
-            mouse.click()
-            analytics.end_timer()
-            time.sleep(1)
-            continue
-        if enemy_minions != []:
-            enemy_minions.sort(key=lambda o: o['health'])
-            mouse.move(*enemy_minions[0]['center'])
-            mouse.click()
-            analytics.end_timer()
-            time.sleep(1)
-            continue
-        if areas['is_turret']:
-            if len(shield_minions) <= 2:
-                goto_lane(cooldown)
-                analytics.end_timer()
-                time.sleep(1)
-                continue
-        if not (areas['is_chaos_side'] and areas['is_lane']):
-            goto_lane(cooldown)
-            analytics.end_timer()
-            time.sleep(1)
-            continue
-
-        if len(shield_minions) > 2:
-            goto_enemy_base(cooldown)
-        analytics.end_timer()
-        time.sleep(1)
 
 
 if __name__ == "__main__":

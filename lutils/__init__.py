@@ -24,6 +24,7 @@ def wait_league_window(logger, rect):
             hwnd = find_window_hwnds(r'League of Legends \(TM\) Client')[0]
             move_window_hwnd(hwnd, rect)
             focus_window(hwnd)
+            time.sleep(1)
             return hwnd
         except NoWindowFoundError:
             time.sleep(10)

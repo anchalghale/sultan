@@ -2,4 +2,4 @@
 
 
 class NoCharacterInMinimap(Exception):
-    pass
+    ''' Raised when no character is found in the minimap '''
