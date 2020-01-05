@@ -1,4 +1,5 @@
 ''' Main module of the script '''
+
 import time
 import collections
 
@@ -13,15 +14,16 @@ from cooldown import Cooldown
 from window import find_rect
 
 from lutils import wait_league_window
-from ldetect import is_camera_locked, is_level_up, get_minimap_coor, get_minimap_areas, get_objects
-from ldetect.filter import filter_objects
-from ldetect.state import get_game_state
+from lvision.filter import filter_objects
+from lvision.state import get_game_state
+from lvision import (is_camera_locked, get_level_ups,
+                     get_minimap_coor, get_minimap_areas, get_objects)
 
-from bot import goto_lane, goto_enemy_base, evade, level_up
+
 from bot.exceptions import BotContinueException, BotExitException
+from bot import goto_lane, goto_enemy_base, evade, level_up
 
 from constants import LEVEL_UP_SEQUENCE, ANALYTICS_IGNORE, COOLDOWNS
-
 
 Utility = collections.namedtuple('Utility', 'logger screen resources analytics cooldown')
 
@@ -34,7 +36,7 @@ def tick(utility, handle):
     img = utility.screen.screenshot(utility.analytics, find_rect(handle))
     if not is_camera_locked(img):
         keyboard.press_and_release('y')
-    level_ups = is_level_up(img)
+    level_ups = get_level_ups(img)
     level_up(level_ups, LEVEL_UP_SEQUENCE)
     coor = get_minimap_coor(utility.analytics, img)
     areas = get_minimap_areas(utility.analytics, utility.resources.images, coor)

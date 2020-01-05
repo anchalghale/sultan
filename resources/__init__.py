@@ -14,7 +14,7 @@ class Resources:
     def load(self, analytics):
         ''' Loads the resources file into memory '''
         analytics.start_timer('load_resources', 'Loading resources')
-        for file in glob.glob('ldetect/assets/images/**/*.png'):
+        for file in glob.glob('lvision/assets/images/**/*.png'):
             base_name = os.path.basename(file)
             name = os.path.splitext(base_name)[0]
             self.images[name] = cv2.imread(file)

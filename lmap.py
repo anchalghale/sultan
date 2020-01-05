@@ -9,7 +9,7 @@ from logger import CliLogger
 from screen import Screen
 from window import find_rect
 from lutils import wait_league_window
-from ldetect import get_minimap_coor
+from lvision import get_minimap_coor
 
 TURRET_LOCATIONS = [(54, 9)]
 

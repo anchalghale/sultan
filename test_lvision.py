@@ -4,8 +4,8 @@ import cv2
 from analytics import Analytics
 from logger import CliLogger
 from resources import Resources
-from ldetect import is_camera_locked, get_level_ups, get_minimap_coor, get_objects, get_abilities
-from ldetect.utils import draw_objects
+from lvision import is_camera_locked, get_level_ups, get_minimap_coor, get_objects, get_abilities
+from lvision.utils import draw_objects
 
 
 def main():

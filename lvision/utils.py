@@ -1,4 +1,4 @@
-''' Utility functions of ldetect package '''
+''' Utility functions of lvision package '''
 import cv2
 
 
