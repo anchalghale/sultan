@@ -2,12 +2,11 @@
 import cv2
 import numpy
 
-from cutils import coor_offset, crop, find_center, get_color_diff
+from cutils import coor_offset, crop, find_center, get_color_diff, get_nearest
 
 from .abilities import get_level_ups, get_abilities, get_ability_points
 
 from .constants import MINIMAP_AREAS, CAMERA_LOCK, LEVEL_Q, LEVEL_W, LEVEL_E, LEVEL_R
-from .colors import SMALL_HP_BARS
 from .exceptions import NoCharacterInMinimap
 
 
@@ -28,17 +27,24 @@ def identify_object(img, coor):
     ''' Indentify an object from the coordiate '''
     size = img.shape[:2]
     output = {'coor': coor}
-    if (img[coor_offset(coor, (1, 0), size)] == (24, 239, 24)).all():
-        output['name'] = 'ally_champion'
-    elif tuple(img[coor_offset(coor, (0, -1), size)]) != (21, 1, 255):
+    colors = (0, 255, 0), (255, 0, 0), (255, 255, 0), (0, 0, 255), (0, 0, 134)
+    mappings = dict(zip(colors, ('champion', 'structure', 'monster', 'minion', 'small_monster')))
+    nearest_color = get_nearest(img[coor_offset(coor, (0, -1), size)], colors, 25)
+    if nearest_color is None:
         return None
-    else:
-
-        color = tuple(img[coor_offset(coor, (1, 0), size)])
-        diffs = {}
-        for key, value in SMALL_HP_BARS.items():
-            diffs[key] = get_color_diff(value, color)
-        output['name'] = sorted(diffs, key=diffs.get)[0]
+    if mappings[nearest_color] == 'champion':
+        output['name'] = 'champion'
+    elif mappings[nearest_color] == 'structure':
+        output['name'] = 'structure'
+    elif mappings[nearest_color] == 'monster':
+        output['name'] = 'monster'
+    elif mappings[nearest_color] == 'small_monster':
+        output['name'] = 'small_monster'
+    elif mappings[nearest_color] == 'minion':
+        color = img[coor_offset(coor, (1, 0), size)]
+        colors = (98, 167, 231), (224, 114, 112), (219, 170, 130)
+        mappings = dict(zip(colors, ('ally_minion', 'enemy_minion', 'plant')))
+        output['name'] = mappings[get_nearest(color, colors)]
         hp_bar = img[coor[1]:coor[1]+1, coor[0]+1:coor[0]+61]
         output['health'] = get_small_hp_value(hp_bar)
         output['center'] = coor[0]+30, coor[1]+35
@@ -46,6 +52,15 @@ def identify_object(img, coor):
             output['center'][0] > img.shape[0]/img.shape[1]
         output['is_turret'] = tuple(img[coor_offset(coor, (-1, 0), size)]) == (0, 36, 21)
     return output
+
+
+def identify_turret(contour, area):
+    ''' Indentify an turret from contour '''
+    if area > 2000:
+        x, y, w, h = cv2.boundingRect(contour)
+        center = x + w//2, y + h - 30
+        return {'name': 'turret', 'coor': tuple(contour[0][0]), 'center': center}
+    return None
 
 
 def get_objects(analytics, img, start, end):
@@ -57,8 +72,9 @@ def get_objects(analytics, img, start, end):
     objects = []
     for contour in contours:
         area = cv2.contourArea(contour)
-        if area > 2000:
-            objects.append({'name': 'turret', 'coor': tuple(contour[0][0])})
+        turret = identify_turret(contour, area)
+        if turret is not None:
+            objects.append(turret)
             continue
         if area == 0:
             obj = identify_object(img, tuple(contour[0][0]))

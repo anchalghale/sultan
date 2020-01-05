@@ -17,13 +17,23 @@ def goto_lane(cooldown):
 
 
 def evade(cooldown):
-    ''' Goto a lane '''
+    ''' Evade '''
     if not cooldown.is_available('evade'):
         return
     print('evading')
-    mouse.move(*humanize((27, 730)))
+    mouse.move(*humanize((27, 730), max_offset=50))
     mouse.right_click()
     cooldown.start_timer('evade')
+
+
+def move_forward(cooldown):
+    ''' Move forward '''
+    if not cooldown.is_available('move_forward'):
+        return
+    print('Moving forward')
+    mouse.move(*humanize((933, 73), max_offset=50))
+    mouse.right_click()
+    cooldown.start_timer('move_forward')
 
 
 def goto_enemy_base(cooldown):

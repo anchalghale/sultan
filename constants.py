@@ -2,7 +2,7 @@
 
 LEVEL_UP_SEQUENCE = ['r', 'w', 'q', 'e']
 
-COOLDOWNS = {'goto_lane': 20, 'goto_enemy_base': 3, 'evade': 0.2}
+COOLDOWNS = {'goto_lane': 20, 'goto_enemy_base': 3, 'evade': 0.2, 'move_forward': 2}
 
 ANALYTICS_IGNORE = [
     'screenshot',

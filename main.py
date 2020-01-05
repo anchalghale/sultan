@@ -22,7 +22,7 @@ from lvision import (is_camera_locked, get_level_ups, get_ability_points,
 
 
 from bot.exceptions import BotContinueException, BotExitException
-from bot import goto_lane, goto_enemy_base, evade, level_up
+from bot import goto_lane, goto_enemy_base, evade, move_forward, level_up
 
 from constants import LEVEL_UP_SEQUENCE, ANALYTICS_IGNORE, COOLDOWNS
 
@@ -46,13 +46,13 @@ def tick(utility):
     objects = filter_objects(obj_list)
     state = get_game_state(objects, areas)
 
-    if areas['is_turret'] and not state.is_shielded:
+    if areas['is_turret'] and state.is_enemy_turret and not state.is_shielded:
         evade(utility.cooldown)
         raise BotContinueException
     if state.is_enemy_turret and state.is_shielded:
         if abilities.w:
             keyboard.press_and_release('w')
-        mouse.move(*objects.turrets[0]['coor'])
+        mouse.move(*objects.turrets[0]['center'])
         mouse.click()
         raise BotContinueException
     if objects.enemy_minions != []:
@@ -62,10 +62,11 @@ def tick(utility):
         mouse.move(*objects.enemy_minions[0]['center'])
         mouse.click()
         raise BotContinueException
-    if areas['is_turret']:
-        if len(objects.shield_minions) <= 2:
-            goto_lane(utility.cooldown)
-            raise BotContinueException
+    if (areas['is_chaos_side'] and
+            (areas['is_lane'] or areas['is_base']) and
+            not state.is_enemy_turret):
+        move_forward(utility.cooldown)
+        raise BotContinueException
     if not (areas['is_chaos_side'] and areas['is_lane']):
         goto_lane(utility.cooldown)
         raise BotContinueException
