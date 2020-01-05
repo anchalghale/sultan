@@ -4,6 +4,14 @@ import random
 import cv2
 
 
+def get_nearest(pixel, colors):
+    ''' Gets the nearest color from list of colors to a pixel '''
+    diffs = {}
+    for value in colors:
+        diffs[value] = get_color_diff(value, pixel)
+    return min(diffs, key=diffs.get)
+
+
 def coor_offset(coor, offset, size):
     ''' Finds the offset of a coordinate '''
     h, w = size

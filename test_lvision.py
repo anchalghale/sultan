@@ -4,7 +4,7 @@ import cv2
 from analytics import Analytics
 from logger import CliLogger
 from resources import Resources
-from ldetect import is_camera_locked, is_level_up, get_minimap_coor, get_objects
+from ldetect import is_camera_locked, get_level_ups, get_minimap_coor, get_objects, get_abilities
 from ldetect.utils import draw_objects
 
 
@@ -22,7 +22,8 @@ def main():
 
     analytics.start_timer()
     logger.log(f'Camera locked: {is_camera_locked(img)}')
-    logger.log(is_level_up(img))
+    logger.log(get_abilities(img))
+    logger.log(get_level_ups(img))
     logger.log(f'Minimap coor: {get_minimap_coor(analytics, img)}')
     objs = get_objects(analytics, img, (190, 0, 190), (255, 20, 255))
     enemy_minions = list(filter(lambda o: o['name'] == 'enemy_minion', objs))
