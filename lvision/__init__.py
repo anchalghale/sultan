@@ -36,6 +36,7 @@ def identify_object(img, coor):
         output['name'] = 'champion'
     elif mappings[nearest_color] == 'structure':
         output['name'] = 'structure'
+        output['center'] = coor[0] + 75, coor[1] + 150
     elif mappings[nearest_color] == 'monster':
         output['name'] = 'monster'
     elif mappings[nearest_color] == 'small_monster':
@@ -50,7 +51,13 @@ def identify_object(img, coor):
         output['center'] = coor[0]+30, coor[1]+35
         output['is_order_side'] = output['center'][1] / \
             output['center'][0] > img.shape[0]/img.shape[1]
-        output['is_turret'] = tuple(img[coor_offset(coor, (-1, 0), size)]) == (0, 36, 21)
+        try:
+            output['is_turret'] = (
+                tuple(img[coor_offset(coor, (-1, 0), size)]) == (0, 36, 21) or
+                tuple(img[output['center'][::-1]]) == (0, 36, 21)
+            )
+        except IndexError:
+            output['is_turret'] = False
     return output
 
 

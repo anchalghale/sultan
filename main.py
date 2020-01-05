@@ -2,6 +2,7 @@
 
 import time
 import collections
+import traceback
 
 import keyboard
 import mouse
@@ -43,11 +44,17 @@ def tick(utility):
     areas = get_minimap_areas(utility.analytics, utility.resources.images, coor)
     abilities = get_abilities(img)
     obj_list = get_objects(utility.analytics, img, (190, 0, 190), (255, 20, 255))
-    objects = filter_objects(obj_list)
+    objects = filter_objects(obj_list, areas)
     state = get_game_state(objects, areas)
-
     if areas['is_turret'] and state.is_enemy_turret and not state.is_shielded:
         evade(utility.cooldown)
+        raise BotContinueException
+    if objects.open_structures != []:
+        if abilities.w:
+            keyboard.press_and_release('w')
+        objects.enemy_minions.sort(key=lambda o: o['health'])
+        mouse.move(*objects.open_structures[0]['center'])
+        mouse.click()
         raise BotContinueException
     if state.is_enemy_turret and state.is_shielded:
         if abilities.w:
@@ -62,6 +69,7 @@ def tick(utility):
         mouse.move(*objects.enemy_minions[0]['center'])
         mouse.click()
         raise BotContinueException
+
     if (areas['is_chaos_side'] and
             (areas['is_lane'] or areas['is_base']) and
             not state.is_enemy_turret):
@@ -91,11 +99,15 @@ def main():
         try:
             tick(Utility(logger, screen, resources, analytics, cooldown))
             analytics.end_timer()
-            time.sleep(1)
+            time.sleep(0.5)
         except BotContinueException:
             analytics.end_timer()
-            time.sleep(1)
+            time.sleep(0.5)
         except BotExitException:
+            screen.d3d.stop()
+            break
+        except Exception:  # pylint:disable=broad-except
+            traceback.print_exc()
             screen.d3d.stop()
             break
 
