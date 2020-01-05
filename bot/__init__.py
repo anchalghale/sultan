@@ -18,7 +18,6 @@ def goto_lane(cooldown):
 
 def evade(cooldown):
     ''' Goto a lane '''
-    # Currently moves to top lane only
     if not cooldown.is_available('evade'):
         return
     print('evading')
@@ -37,10 +36,16 @@ def goto_enemy_base(cooldown):
     cooldown.start_timer('goto_enemy_base')
 
 
-def level_up(level_ups, sequence):
+def level_up(level_ups, ability_points, sequence):
     ''' Levels up an ability using priority sequence '''
     for ability in sequence:
-        if level_ups[ability]:
+        if getattr(level_ups, ability) and not getattr(ability_points, ability):
+            print(f'leveling up {ability}')
+            keyboard.press_and_release(f'ctrl+{ability}')
+            return
+
+    for ability in sequence:
+        if getattr(level_ups, ability):
             print(f'leveling up {ability}')
             keyboard.press_and_release(f'ctrl+{ability}')
             return

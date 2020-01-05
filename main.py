@@ -16,7 +16,7 @@ from window import find_rect
 from lutils import wait_league_window
 from lvision.filter import filter_objects
 from lvision.state import get_game_state
-from lvision import (is_camera_locked, get_level_ups,
+from lvision import (is_camera_locked, get_level_ups, get_ability_points,
                      get_minimap_coor, get_minimap_areas, get_objects)
 
 
@@ -37,7 +37,7 @@ def tick(utility, handle):
     if not is_camera_locked(img):
         keyboard.press_and_release('y')
     level_ups = get_level_ups(img)
-    level_up(level_ups, LEVEL_UP_SEQUENCE)
+    level_up(level_ups, get_ability_points(img), LEVEL_UP_SEQUENCE)
     coor = get_minimap_coor(utility.analytics, img)
     areas = get_minimap_areas(utility.analytics, utility.resources.images, coor)
     obj_list = get_objects(utility.analytics, img, (190, 0, 190), (255, 20, 255))
