@@ -15,7 +15,7 @@ from lutils import wait_league_window
 from lvision.utils import draw_objects
 from lvision import (is_camera_locked, get_level_ups, get_minimap_coor,
                      get_objects, get_abilities, get_ability_points)
-from lvision.ocr import OCR
+from lvision.ocr import Ocr
 from lvision.gold import get_gold
 
 from constants import ANALYTICS_IGNORE
@@ -28,7 +28,7 @@ def tick(logger, analytics, img, ocr):
     logger.log(get_abilities(img))
     logger.log(get_ability_points(img))
     logger.log(get_level_ups(img))
-    logger.log(get_gold(img, ocr))
+    logger.log(f'Gold:{get_gold(img, ocr)}')
     logger.log(f'Minimap coor: {get_minimap_coor(analytics, img)}')
     objs = get_objects(analytics, img, (190, 0, 190), (255, 20, 255))
     enemy_minions = list(filter(lambda o: o['name'] == 'enemy_minion', objs))
@@ -47,7 +47,7 @@ def main():
 
     logger = CliLogger()
     screen = Screen()
-    ocr = OCR(threshold=200000)
+    ocr = Ocr(threshold=200000)
     ocr.load_model('model.yml')
     analytics = Analytics(logger)
     analytics.ignore = ANALYTICS_IGNORE
