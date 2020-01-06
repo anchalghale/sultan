@@ -16,6 +16,12 @@ def get_nearest(pixel, colors, threshold=None):
     return minimum
 
 
+def get_nearest_value(pixel, colors, values, threshold=None):
+    ''' Gets the nearest color from list of colors to a pixel '''
+    mappings = dict(zip(colors, values))
+    return mappings[get_nearest(pixel, colors, threshold)]
+
+
 def coor_offset(coor, offset, size):
     ''' Finds the offset of a coordinate '''
     h, w = size

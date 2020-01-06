@@ -28,7 +28,6 @@ def tick(logger, analytics, resources, img, ocr):
     analytics.start_timer()
     coor = get_minimap_coor(analytics, img)
     areas = get_minimap_areas(analytics, resources.images, coor)
-
     logger.log(f'Camera locked: {is_camera_locked(img)}')
     logger.log(get_abilities(img))
     logger.log(get_ability_points(img))
@@ -73,7 +72,7 @@ def main():
                 continue
             img_bgr = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
             objs = tick(logger, analytics, resources, img, ocr)
-            draw_objects(img_bgr, objs, wait=False)
+            draw_objects(img_bgr, objs, wait=False, title='League Vision - Interactive')
             logger.log('Press and hold x to exit bot.')
             logger.log('-'*50)
             time.sleep(1)
@@ -90,7 +89,7 @@ def main():
         objs = tick(logger, analytics, resources, img, ocr)
         logger.log('Press x to exit.')
         logger.log('-'*50)
-        if draw_objects(img_bgr, objs) == 120:
+        if draw_objects(img_bgr, objs, title=f'League Vision - {file}') == 120:
             break
 
 

@@ -2,7 +2,8 @@
 import cv2
 import numpy
 
-from cutils import coor_offset, crop, find_center, get_color_diff, get_nearest, inside_rect
+from cutils import (coor_offset, crop, find_center, get_color_diff,
+                    get_nearest, get_nearest_value, inside_rect)
 
 from .abilities import get_level_ups, get_abilities, get_ability_points
 from .minimap import get_minimap_areas, get_minimap_coor
@@ -24,6 +25,19 @@ def get_small_hp_value(hp_img):
     return 60
 
 
+def get_hp_value(hp_img):
+    ''' Calcuates the hp of given image of width 105 '''
+    try:
+        hp_img = hp_img.reshape((105, 3))
+    except ValueError:
+        return -1
+    reference = hp_img[0]
+    for i in range(len(hp_img)-2):
+        if all([get_color_diff(reference, hp_img[i+j]) > 50 for j in range(3)]):
+            return i
+    return 105
+
+
 def identify_object(img, coor):
     ''' Indentify an object from the coordiate '''
     size = img.shape[:2]
@@ -34,7 +48,13 @@ def identify_object(img, coor):
     if nearest_color is None:
         return None
     if mappings[nearest_color] == 'champion':
-        output['name'] = 'champion'
+        color = img[coor_offset(coor, (1, 0), size)]
+        output['name'] = get_nearest_value(
+            color,
+            ((0, 255, 0), (255, 0, 0)),
+            ('player_champion', 'enemy_champion'))
+        hp_bar = img[coor[1]:coor[1]+1, coor[0]+1:coor[0]+106]
+        output['health'] = get_hp_value(hp_bar)
     elif mappings[nearest_color] == 'structure':
         output['name'] = 'structure'
         output['center'] = coor[0] + 75, coor[1] + 150
