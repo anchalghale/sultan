@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 
 
-class OCR:
+class Ocr:
     '''Class for ocr'''
 
     def __init__(self, threshold):
