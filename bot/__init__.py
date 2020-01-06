@@ -4,10 +4,19 @@ import keyboard
 
 from cutils import humanize
 
+DOWN = 509, 477
+UP = 506, 146
+RIGHT = 672, 341
+LEFT = 299, 342
+DOWN_LEFT = 410, 460
+UP_RIGHT = 665, 220
+
+MAX_OFFSET = 25
+
 
 def goto_lane(cooldown):
     ''' Goto a lane '''
-    # Currently moves to top lane only
+    # Currently moves to mid lane only
     if not cooldown.is_available('goto_lane'):
         return
     print('moving to lane')
@@ -20,9 +29,22 @@ def evade(cooldown, areas):
     ''' Evade '''
     if not cooldown.is_available('evade'):
         return
-    print('evading')
     if areas.nearest_lane == 'mid':
-        mouse.move(*humanize((410, 460), max_offset=50))
+        mouse.move(*humanize(DOWN_LEFT, max_offset=MAX_OFFSET))
+    if areas.nearest_lane == 'top':
+        if areas.is_map_divide:
+            mouse.move(*humanize(DOWN_LEFT, max_offset=MAX_OFFSET))
+        elif areas.is_order_side:
+            mouse.move(*humanize(DOWN, max_offset=MAX_OFFSET))
+        else:
+            mouse.move(*humanize(LEFT, max_offset=MAX_OFFSET))
+    if areas.nearest_lane == 'bot':
+        if areas.is_map_divide:
+            mouse.move(*humanize(DOWN_LEFT, max_offset=MAX_OFFSET))
+        elif areas.is_order_side:
+            mouse.move(*humanize(LEFT, max_offset=MAX_OFFSET))
+        else:
+            mouse.move(*humanize(DOWN, max_offset=MAX_OFFSET))
     mouse.right_click()
     cooldown.start_timer('evade')
 
@@ -31,9 +53,22 @@ def move_forward(cooldown, areas):
     ''' Move forward '''
     if not cooldown.is_available('move_forward'):
         return
-    print('Moving forward')
     if areas.nearest_lane == 'mid':
-        mouse.move(*humanize((665, 267), max_offset=50))
+        mouse.move(*humanize(UP_RIGHT, max_offset=MAX_OFFSET))
+    if areas.nearest_lane == 'top':
+        if areas.is_map_divide:
+            mouse.move(*humanize(UP_RIGHT, max_offset=MAX_OFFSET))
+        elif areas.is_order_side:
+            mouse.move(*humanize(UP, max_offset=MAX_OFFSET))
+        else:
+            mouse.move(*humanize(RIGHT, max_offset=MAX_OFFSET))
+    if areas.nearest_lane == 'bot':
+        if areas.is_map_divide:
+            mouse.move(*humanize(UP_RIGHT, max_offset=MAX_OFFSET))
+        elif areas.is_order_side:
+            mouse.move(*humanize(RIGHT, max_offset=MAX_OFFSET))
+        else:
+            mouse.move(*humanize(UP, max_offset=MAX_OFFSET))
     mouse.right_click()
     cooldown.start_timer('move_forward')
 

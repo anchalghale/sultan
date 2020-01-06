@@ -1,8 +1,8 @@
 ''' Main module of the script '''
-
 import time
 import collections
 import traceback
+import random
 
 import keyboard
 import mouse
@@ -29,12 +29,12 @@ from constants import LEVEL_UP_SEQUENCE, ANALYTICS_IGNORE, COOLDOWNS
 
 Utility = collections.namedtuple('Utility', 'logger screen resources analytics cooldown')
 
+TICK_INTERVAL = 300, 700  # ms
+
 
 def tick(utility):
     ''' Simulates a single tick of the bot '''
     utility.analytics.start_timer()
-    if keyboard.is_pressed('x'):
-        raise BotExitException
     img = utility.screen.d3d.get_latest_frame()
     if not is_camera_locked(img):
         keyboard.press_and_release('y')
@@ -46,6 +46,7 @@ def tick(utility):
     obj_list = get_objects(utility.analytics, img, (190, 0, 190), (255, 20, 255))
     objects = filter_objects(obj_list, areas)
     state = get_game_state(objects, areas)
+    evade(utility.cooldown, areas)
     if areas.is_turret and state.is_enemy_turret and not state.is_shielded:
         evade(utility.cooldown, areas)
         raise BotContinueException
@@ -84,6 +85,7 @@ def tick(utility):
 
 def main():
     '''Main function of the script'''
+    paused = False
 
     logger = CliLogger()
     screen = Screen()
@@ -97,12 +99,23 @@ def main():
     screen.d3d.capture(target_fps=10, region=find_rect(handle))
     while True:
         try:
+            if keyboard.is_pressed('x'):
+                raise BotExitException
+            if keyboard.is_pressed('ctrl+u'):
+                paused = False
+            if paused:
+                time.sleep(0.1)
+                continue
+            if keyboard.is_pressed('ctrl+p'):
+                paused = True
+                logger.log('Bot paused. Press ctrl+u to unpause. Press x to exit.')
+                continue
             tick(Utility(logger, screen, resources, analytics, cooldown))
             analytics.end_timer()
-            time.sleep(0.5)
+            time.sleep(random.randint(*TICK_INTERVAL)/1000)
         except BotContinueException:
             analytics.end_timer()
-            time.sleep(0.5)
+            time.sleep(random.randint(*TICK_INTERVAL)/1000)
         except BotExitException:
             screen.d3d.stop()
             break
