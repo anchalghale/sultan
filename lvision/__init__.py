@@ -2,7 +2,7 @@
 import cv2
 import numpy
 
-from cutils import coor_offset, crop, find_center, get_color_diff, get_nearest
+from cutils import coor_offset, crop, find_center, get_color_diff, get_nearest, inside_rect
 
 from .abilities import get_level_ups, get_abilities, get_ability_points
 
@@ -63,10 +63,18 @@ def identify_object(img, coor):
 
 def identify_turret(contour, area):
     ''' Indentify an turret from contour '''
-    if area > 2000:
+    if area > 3000:
         x, y, w, h = cv2.boundingRect(contour)
         center = x + w//2, y + h - 30
         return {'name': 'turret', 'coor': tuple(contour[0][0]), 'center': center}
+    return None
+
+
+def identify_turret_aggro(contour, area):
+    ''' Indentify an turret from contour '''
+    if(600 < area < 3000 and
+       inside_rect(contour[0][0], (470, 260, 100, 100))):
+        return {'name': 'turret_aggro', 'coor': tuple(contour[0][0])}
     return None
 
 
@@ -79,6 +87,10 @@ def get_objects(analytics, img, start, end):
     objects = []
     for contour in contours:
         area = cv2.contourArea(contour)
+        turret_aggro = identify_turret_aggro(contour, area)
+        if turret_aggro is not None:
+            objects.append(turret_aggro)
+            continue
         turret = identify_turret(contour, area)
         if turret is not None:
             objects.append(turret)

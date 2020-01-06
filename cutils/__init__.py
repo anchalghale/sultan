@@ -38,6 +38,14 @@ def humanize(coor, max_offset=5):
     return (x, y)
 
 
+def inside_rect(coor, rect):
+    ''' Returns if the coordinate is inside the rect '''
+    x1, y1, w, h = rect
+    x2, y2 = x1 + w, y1 + h
+    x, y = coor
+    return x1 < x < x2 and y1 < y < y2
+
+
 def crop(img, rect):
     ''' Crops an cv2 image using coordinate and size '''
     return img[rect[1]:rect[1]+rect[3], rect[0]:rect[0]+rect[2]]
