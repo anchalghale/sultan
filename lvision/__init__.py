@@ -53,6 +53,7 @@ def identify_object(img, coor):
             color,
             ((0, 255, 0), (255, 0, 0)),
             ('player_champion', 'enemy_champion'))
+        output['center'] = coor[0]+40, coor[1]+100
         hp_bar = img[coor[1]:coor[1]+1, coor[0]+1:coor[0]+106]
         output['health'] = get_hp_value(hp_bar)
     elif mappings[nearest_color] == 'structure':
@@ -70,6 +71,9 @@ def identify_object(img, coor):
         hp_bar = img[coor[1]:coor[1]+1, coor[0]+1:coor[0]+61]
         output['health'] = get_small_hp_value(hp_bar)
         output['center'] = coor[0]+30, coor[1]+35
+        if output['name'] == 'enemy_minion':
+            output['aggro'] = get_color_diff(
+                img[coor_offset(coor, (28, -16), size)], (255, 0, 0)) < 50
         output['is_order_side'] = output['center'][1] / \
             output['center'][0] > img.shape[0]/img.shape[1]
         try:

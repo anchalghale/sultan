@@ -8,7 +8,9 @@ def draw_objects(img, objects, wait=True, title=''):
         if 'center' in obj:
             img = cv2.circle(img, obj['center'], 7, (0, 0, 255), -1)
     for obj in objects:
-        if 'health' in obj:
+        if obj['name'] == 'enemy_minion':
+            text = f'''{obj['name']}, {obj['health']}, {obj['aggro']}'''
+        elif 'health' in obj:
             text = f'''{obj['name']}, {obj['health']}'''
         else:
             text = f'''{obj['name']}'''
