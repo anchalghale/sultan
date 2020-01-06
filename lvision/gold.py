@@ -9,5 +9,5 @@ def get_gold(img, ocr):
     gold = ''
     for i in range(5):
         cropped = crop(img, (i * 7, 0, 7, 9))
-        gold += f'{ocr.predict(cropped)}'
-    return f'Gold: {gold}'
+        gold += str(ocr.predict(cropped))
+    return int(gold)
