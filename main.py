@@ -46,8 +46,8 @@ def tick(utility):
     obj_list = get_objects(utility.analytics, img, (190, 0, 190), (255, 20, 255))
     objects = filter_objects(obj_list, areas)
     state = get_game_state(objects, areas)
-    if areas['is_turret'] and state.is_enemy_turret and not state.is_shielded:
-        evade(utility.cooldown)
+    if areas.is_turret and state.is_enemy_turret and not state.is_shielded:
+        evade(utility.cooldown, areas)
         raise BotContinueException
     if objects.open_structures != []:
         if abilities.w:
@@ -70,12 +70,12 @@ def tick(utility):
         mouse.click()
         raise BotContinueException
 
-    if (areas['is_chaos_side'] and
-            (areas['is_lane'] or areas['is_base']) and
+    if (areas.is_chaos_side and
+            (areas.is_lane or areas.is_base) and
             not state.is_enemy_turret):
-        move_forward(utility.cooldown)
+        move_forward(utility.cooldown, areas)
         raise BotContinueException
-    if not (areas['is_chaos_side'] and areas['is_lane']):
+    if not (areas.is_chaos_side and areas.is_lane):
         goto_lane(utility.cooldown)
         raise BotContinueException
     if len(objects.shield_minions) > 2:

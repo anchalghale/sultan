@@ -16,22 +16,24 @@ def goto_lane(cooldown):
     cooldown.start_timer('goto_lane')
 
 
-def evade(cooldown):
+def evade(cooldown, areas):
     ''' Evade '''
     if not cooldown.is_available('evade'):
         return
     print('evading')
-    mouse.move(*humanize((410, 460), max_offset=50))
+    if areas.nearest_lane == 'mid':
+        mouse.move(*humanize((410, 460), max_offset=50))
     mouse.right_click()
     cooldown.start_timer('evade')
 
 
-def move_forward(cooldown):
+def move_forward(cooldown, areas):
     ''' Move forward '''
     if not cooldown.is_available('move_forward'):
         return
     print('Moving forward')
-    mouse.move(*humanize((665, 267), max_offset=50))
+    if areas.nearest_lane == 'mid':
+        mouse.move(*humanize((665, 267), max_offset=50))
     mouse.right_click()
     cooldown.start_timer('move_forward')
 
