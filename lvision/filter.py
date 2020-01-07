@@ -2,7 +2,7 @@
 import collections
 
 Objects = collections.namedtuple(
-    'Objects', 'ally_minions enemy_minions shield_minions turrets open_structures')
+    'Objects', 'ally_minions enemy_minions shield_minions turrets open_structures player_champion')
 
 
 def filter_objects(objs, areas):
@@ -16,4 +16,6 @@ def filter_objects(objs, areas):
     turrets = lfilter(lambda o: o['name'] == 'turret', objs)
     open_structures = [] if len(turrets) > 0 or areas.is_order_side else lfilter(
         lambda o: o['name'] == 'structure', objs)
-    return Objects(ally_minions, enemy_minions, shield_minions, turrets, open_structures)
+    player_champions = lfilter(lambda o: o['name'] == 'player_champion', objs)
+    return Objects(ally_minions, enemy_minions, shield_minions, turrets, open_structures,
+                   player_champions)

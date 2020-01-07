@@ -56,6 +56,7 @@ def identify_object(img, coor):
         output['center'] = coor[0]+40, coor[1]+100
         hp_bar = img[coor[1]:coor[1]+1, coor[0]+1:coor[0]+106]
         output['health'] = get_hp_value(hp_bar)
+        output['level'] = crop(img, (coor[0]-22, coor[1]-12, 19, 21))
     elif mappings[nearest_color] == 'structure':
         output['name'] = 'structure'
         output['center'] = coor[0] + 75, coor[1] + 150
