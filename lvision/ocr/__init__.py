@@ -6,7 +6,7 @@ import numpy as np
 class Ocr:
     '''Class for ocr'''
 
-    def __init__(self, threshold):
+    def __init__(self, threshold=None):
         self.model = None
         self.threshold = threshold
 
@@ -16,11 +16,10 @@ class Ocr:
 
     def predict(self, image):
         '''predict number in image'''
-        img = cv2.resize(image, (7, 9))
-        img = img.reshape((1, 63))
+        img = image.reshape((1, image.shape[0]*image.shape[1]))
         data = np.float32(img)
         _, results, _, dists = self.model.findNearest(data, k=1)
-        return int((results[0][0])) if int(dists[0][0]) < self.threshold else ''
+        return int((results[0][0])) if self.threshold is None or int(dists[0][0]) < self.threshold else ''
 
     def train(self, samples, responses):
         '''Train ocr model'''
@@ -29,4 +28,4 @@ class Ocr:
 
     def save_model(self, path):
         '''save model to given path'''
-        self.model.save(path + 'model.yml')
+        self.model.save(path)
