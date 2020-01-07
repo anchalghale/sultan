@@ -2,6 +2,7 @@
 import argparse
 import glob
 import time
+import collections
 
 import cv2
 import keyboard
@@ -19,8 +20,12 @@ from lvision import (is_camera_locked, get_level_ups, get_minimap_coor,
                      get_minimap_areas)
 from lvision.ocr import Ocr
 from lvision.gold import get_gold
+from lvision.sums import get_summoner_spells
 
 from constants import ANALYTICS_IGNORE
+
+
+OCR = collections.namedtuple('ocr', 'gold spell')
 
 
 def tick(logger, analytics, resources, img, ocr):
@@ -33,7 +38,8 @@ def tick(logger, analytics, resources, img, ocr):
     logger.log(get_ability_points(img))
     logger.log(get_level_ups(img))
     logger.log(areas)
-    logger.log(f'Gold: {get_gold(img, ocr)}')
+    logger.log(f'Gold: {get_gold(img, ocr.gold)}')
+    logger.log(get_summoner_spells(img, ocr.spell))
     logger.log(f'Minimap coor: {coor}')
     objs = get_objects(analytics, img, (190, 0, 190), (255, 20, 255))
     enemy_minions = list(filter(lambda o: o['name'] == 'enemy_minion', objs))
@@ -52,8 +58,14 @@ def main():
 
     logger = CliLogger()
     screen = Screen()
-    ocr = Ocr(threshold=200000)
-    ocr.load_model('model.yml')
+    gold_ocr = Ocr(threshold=200000)
+    gold_ocr.load_model('lvision/ocr/trained/gold.yml')
+
+    spell_ocr = Ocr()
+    spell_ocr.load_model('lvision/ocr/trained/summoner_spell.yml')
+
+    ocr = OCR(gold_ocr, spell_ocr)
+    print(ocr)
     analytics = Analytics(logger)
     resources = Resources()
     analytics.ignore = ANALYTICS_IGNORE
