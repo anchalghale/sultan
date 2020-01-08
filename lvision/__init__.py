@@ -7,6 +7,9 @@ from cutils import (coor_offset, crop, find_center, get_color_diff,
 
 from .abilities import get_level_ups, get_abilities, get_ability_points
 from .minimap import get_minimap_areas, get_minimap_coor
+from .state import get_game_state
+from .filter import filter_objects
+from .stats import get_attack_speed
 
 from .constants import MINIMAP_AREAS, CAMERA_LOCK, LEVEL_Q, LEVEL_W, LEVEL_E, LEVEL_R
 from .exceptions import NoCharacterInMinimap
@@ -57,6 +60,7 @@ def identify_object(img, coor):
         hp_bar = img[coor[1]:coor[1]+1, coor[0]+1:coor[0]+106]
         output['health'] = get_hp_value(hp_bar)
         output['level'] = crop(img, (coor[0]-22, coor[1]-12, 19, 21))
+        output['is_turret'] = tuple(img[coor_offset(coor, (-2, 0), size)]) == (0, 36, 21)
     elif mappings[nearest_color] == 'structure':
         output['name'] = 'structure'
         output['center'] = coor[0] + 75, coor[1] + 150

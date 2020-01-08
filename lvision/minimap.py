@@ -20,8 +20,11 @@ def get_minimap_areas(analytics, imgs, coor):
     analytics.start_timer('get_minimap_areas', 'Calcualting minimap areas')
     output = []
     for area in MINIMAP_AREAS:
-        pixel = imgs[area['file_name']][coor]
-        output.append(area['mappings'][tuple(pixel)])
+        try:
+            pixel = imgs[area['file_name']][coor]
+            output.append(area['mappings'][tuple(pixel)])
+        except IndexError:
+            output.append(area['mappings'].values()[0])
     output.append(not output[3])
     analytics.end_timer('get_minimap_areas')
     return MinimapAreas(*output)

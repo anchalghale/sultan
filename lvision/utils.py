@@ -2,6 +2,11 @@
 import cv2
 
 
+def lfilter(function, iterable):
+    ''' Filters a list and outputs a list value '''
+    return list(filter(function, iterable))
+
+
 def draw_objects(img, objects, wait=True, title=''):
     ''' Draws the object data to the original image '''
     for obj in objects:
@@ -16,6 +21,7 @@ def draw_objects(img, objects, wait=True, title=''):
             text = f'''{obj['name']}'''
         img = cv2.putText(img, text, obj['coor'], 1, 0.8, (0, 255, 0))
     cv2.imshow(title, img)
+    cv2.moveWindow(title, 0, 0)
     if wait:
         output = cv2.waitKey()
         cv2.destroyWindow(title)

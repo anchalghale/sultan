@@ -1,26 +1,38 @@
 ''' Tasks that bot performs using keyboard and mouse '''
+import time
+
+import numpy
 import mouse
 import keyboard
 
 from cutils import humanize
 
-DOWN = 509, 477
-UP = 506, 146
-RIGHT = 672, 341
-LEFT = 299, 342
-DOWN_LEFT = 410, 460
-UP_RIGHT = 665, 220
+# DOWN = 509, 477
+# UP = 506, 146
+# RIGHT = 672, 341
+# LEFT = 299, 342
+# DOWN_LEFT = 410, 460
+# UP_RIGHT = 665, 220
+
+DOWN = numpy.array([0, 1])
+UP = numpy.array([0, -1])
+RIGHT = numpy.array([1.5, 0])
+LEFT = numpy.array([-1.5, 0])
+DOWN_LEFT = numpy.array([-1.5, 1])
+UP_RIGHT = numpy.array([1.5, -1])
 
 MAX_OFFSET = 25
 
 
-def goto_lane(cooldown):
+def goto_lane(cooldown, lane='bot'):
     ''' Goto a lane '''
-    # Currently moves to mid lane only
     if not cooldown.is_available('goto_lane'):
         return
-    print('moving to lane')
-    mouse.move(*humanize((931, 663)))
+    if lane == 'mid':
+        mouse.move(*humanize((931, 663)))
+    else:
+        mouse.move(*humanize((993, 730)))
+
     mouse.right_click()
     cooldown.start_timer('goto_lane')
 
@@ -29,23 +41,7 @@ def evade(cooldown, areas):
     ''' Evade '''
     if not cooldown.is_available('evade'):
         return
-    if areas.nearest_lane == 'mid':
-        mouse.move(*humanize(DOWN_LEFT, max_offset=MAX_OFFSET))
-    if areas.nearest_lane == 'top':
-        if areas.is_map_divide:
-            mouse.move(*humanize(DOWN_LEFT, max_offset=MAX_OFFSET))
-        elif areas.is_order_side:
-            mouse.move(*humanize(DOWN, max_offset=MAX_OFFSET))
-        else:
-            mouse.move(*humanize(LEFT, max_offset=MAX_OFFSET))
-    if areas.nearest_lane == 'bot':
-        if areas.is_map_divide:
-            mouse.move(*humanize(DOWN_LEFT, max_offset=MAX_OFFSET))
-        elif areas.is_order_side:
-            mouse.move(*humanize(LEFT, max_offset=MAX_OFFSET))
-        else:
-            mouse.move(*humanize(DOWN, max_offset=MAX_OFFSET))
-    mouse.right_click()
+    evade_relative((515, 350), areas)
     cooldown.start_timer('evade')
 
 
@@ -53,24 +49,70 @@ def move_forward(cooldown, areas):
     ''' Move forward '''
     if not cooldown.is_available('move_forward'):
         return
+    move_forward_relative((515, 350), areas)
+    cooldown.start_timer('move_forward')
+
+
+def evade_relative(coor, areas, size=150):
+    ''' Evade forward relative to a coordinate '''
     if areas.nearest_lane == 'mid':
-        mouse.move(*humanize(UP_RIGHT, max_offset=MAX_OFFSET))
+        move = DOWN_LEFT
     if areas.nearest_lane == 'top':
         if areas.is_map_divide:
-            mouse.move(*humanize(UP_RIGHT, max_offset=MAX_OFFSET))
+            move = DOWN_LEFT
         elif areas.is_order_side:
-            mouse.move(*humanize(UP, max_offset=MAX_OFFSET))
+            move = DOWN
         else:
-            mouse.move(*humanize(RIGHT, max_offset=MAX_OFFSET))
+            move = LEFT
     if areas.nearest_lane == 'bot':
         if areas.is_map_divide:
-            mouse.move(*humanize(UP_RIGHT, max_offset=MAX_OFFSET))
+            move = DOWN_LEFT
         elif areas.is_order_side:
-            mouse.move(*humanize(RIGHT, max_offset=MAX_OFFSET))
+            move = LEFT
         else:
-            mouse.move(*humanize(UP, max_offset=MAX_OFFSET))
+            move = DOWN
+    mouse.move(*humanize(move * size + coor, 5))
     mouse.right_click()
-    cooldown.start_timer('move_forward')
+
+
+def move_forward_relative(coor, areas, size=150):
+    ''' Move forward relative to a coordinate '''
+    if areas.nearest_lane == 'mid':
+        move = UP_RIGHT
+    if areas.nearest_lane == 'top':
+        if areas.is_map_divide:
+            move = UP_RIGHT
+        elif areas.is_order_side:
+            move = UP
+        else:
+            move = RIGHT
+    if areas.nearest_lane == 'bot':
+        if areas.is_map_divide:
+            move = UP_RIGHT
+        elif areas.is_order_side:
+            move = RIGHT
+        else:
+            move = UP
+    mouse.move(*humanize(move * size + coor, 5))
+    mouse.right_click()
+
+
+def kite(areas, coor, attack_speed):
+    ''' Kite from a coordinate '''
+    mouse.move(*coor)
+    mouse.click()
+    time.sleep(.7/attack_speed)
+    evade_relative(coor, areas)
+    time.sleep(.2/attack_speed)
+
+
+def orb_walk(areas, coor, attack_speed):
+    ''' Orb walk from a coordinate '''
+    mouse.move(*coor)
+    mouse.click()
+    time.sleep(.7/attack_speed)
+    move_forward_relative(coor, areas)
+    time.sleep(.2/attack_speed)
 
 
 def goto_enemy_base(cooldown):
