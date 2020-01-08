@@ -1,6 +1,6 @@
 # 629, 752, 7, 9
 import cv2
-from cutils import crop, imshow
+from cutils import crop
 
 
 def get_gold(img, ocr):
@@ -10,4 +10,7 @@ def get_gold(img, ocr):
     for i in range(5):
         cropped = crop(img, (i * 7, 0, 7, 9))
         gold += str(ocr.predict(cropped))
-    return int(gold)
+    try:
+        return int(gold)
+    except ValueError:
+        return -1
