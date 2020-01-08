@@ -21,6 +21,7 @@ from lvision import (is_camera_locked, get_level_ups, get_minimap_coor,
 from lvision.ocr import Ocr
 from lvision.gold import get_gold
 from lvision.sums import get_summoner_spells
+from lvision.stats import get_attack_speed
 
 from constants import ANALYTICS_IGNORE
 
@@ -39,6 +40,7 @@ def tick(logger, analytics, resources, img, ocr):
     logger.log(get_level_ups(img))
     logger.log(areas)
     logger.log(f'Gold: {get_gold(img, ocr.gold)}')
+    logger.log(f'Attack speed: {get_attack_speed(img, ocr.gold)}')
     logger.log(get_summoner_spells(img, ocr.spell))
     logger.log(f'Minimap coor: {coor}')
     objs = get_objects(analytics, img, (190, 0, 190), (255, 20, 255))
