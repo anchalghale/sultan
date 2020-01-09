@@ -115,6 +115,15 @@ def orb_walk(areas, coor, attack_speed):
     time.sleep(.2/attack_speed)
 
 
+def poke(areas, coor, attack_speed):
+    ''' Orb walk from a coordinate '''
+    mouse.move(*coor)
+    mouse.click()
+    time.sleep(.7/attack_speed)
+    evade_relative((515, 350), areas)
+    time.sleep(.2/attack_speed)
+
+
 def goto_enemy_base(cooldown):
     ''' Goto enemy base '''
     if not cooldown.is_available('goto_enemy_base'):

@@ -9,12 +9,29 @@ def lfilter(function, iterable):
 
 def draw_objects(img, objects, wait=True, title=''):
     ''' Draws the object data to the original image '''
+    def prepare_objects(objects):
+        dobjects = []
+        for obj in list(objects):
+            if obj is None:
+                continue
+            if isinstance(obj, dict):
+                dobjects.append(obj)
+            if isinstance(obj, list):
+                dobjects += obj
+        return dobjects
+    objects = prepare_objects(objects)
     for obj in objects:
+        if obj is None:
+            continue
         if 'center' in obj:
             img = cv2.circle(img, obj['center'], 7, (0, 0, 255), -1)
     for obj in objects:
+        if obj is None:
+            continue
         if obj['name'] == 'enemy_minion':
             text = f'''{obj['name']}, {obj['health']}, {obj['aggro']}'''
+        elif 'health' in obj and 'level' in obj:
+            text = f'''{obj['name']}, {obj['level']}, {obj['health']}'''
         elif 'health' in obj:
             text = f'''{obj['name']}, {obj['health']}'''
         else:

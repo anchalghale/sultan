@@ -5,6 +5,8 @@ import os
 import win32con
 import win32gui
 
+from .native import get_windows
+
 
 class NoWindowFoundError(Exception):
     ''' Raised when no window exists '''
@@ -64,10 +66,27 @@ def focus_window(hwnd):
         raise CantForgroundWindowError
 
 
+def get_window_handle(title):
+    ''' Returns the handle of the window '''
+    try:
+        return win32gui.FindWindow(None, title)
+    except win32gui.error:
+        return None
+
+
 def close_window(handle):
     ''' Finds and closes a window with a handle '''
     try:
         if handle is not None:
             win32gui.PostMessage(handle, win32con.WM_CLOSE, 0, 0)
+    except win32gui.error:
+        pass
+
+
+def close_window_by_title(title):
+    ''' Finds and closes a window with a title '''
+    try:
+        handle = get_window_handle(title)
+        close_window(handle)
     except win32gui.error:
         pass

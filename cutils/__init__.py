@@ -1,5 +1,6 @@
 ''' Cv2 utility functions '''
 import random
+import math
 
 import cv2
 
@@ -28,6 +29,11 @@ def coor_offset(coor, offset, size):
     y = min(coor[1] + offset[1], h-1)
     x = min(coor[0] + offset[0], w-1)
     return (y, x)
+
+
+def distance(coor1, coor2):
+    ''' Finds the offset of a coordinate '''
+    return math.sqrt((coor1[0] - coor2[0]) ** 2 + (coor1[1] - coor2[1]) ** 2)
 
 
 def get_color_diff(color1, color2):

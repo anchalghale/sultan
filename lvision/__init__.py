@@ -1,8 +1,10 @@
 ''' Object detection module '''
+import collections
+
 import cv2
 import numpy
 
-from cutils import (coor_offset, crop, find_center, get_color_diff,
+from cutils import (coor_offset, crop, find_center, get_color_diff, distance,
                     get_nearest, get_nearest_value, inside_rect)
 
 from .abilities import get_level_ups, get_abilities, get_ability_points
@@ -14,8 +16,19 @@ from .gold import get_gold
 from .sums import get_summoner_spells
 from .level import get_summoner_level
 
+from .ocr import Ocr
 from .constants import MINIMAP_AREAS, CAMERA_LOCK, LEVEL_Q, LEVEL_W, LEVEL_E, LEVEL_R
 from .exceptions import NoCharacterInMinimap
+from .utils import lfilter
+
+LEVEL_OCR = Ocr()
+LEVEL_OCR.load_model('lvision/ocr/trained/summoner_level.yml')
+
+
+Objects = collections.namedtuple(
+    'Objects',
+    'player_champion enemy_champion lowest_enemy_champion closest_enemy_champion shield_minion '
+    'structure monster ally_minion enemy_minion small_monster turret_aggro turret ')
 
 
 def get_small_hp_value(hp_img):
@@ -44,9 +57,12 @@ def get_hp_value(hp_img):
     return 105
 
 
-def identify_object(img, coor):
+def identify_object(img, contour, area):
     ''' Indentify an object from the coordiate '''
+    if area != 0:
+        return None
     size = img.shape[:2]
+    coor = tuple(contour[0][0])
     output = {'coor': coor}
     colors = (0, 255, 0), (255, 0, 0), (255, 255, 0), (0, 0, 255), (0, 0, 134)
     mappings = dict(zip(colors, ('champion', 'structure', 'monster', 'minion', 'small_monster')))
@@ -62,7 +78,8 @@ def identify_object(img, coor):
         output['center'] = coor[0]+40, coor[1]+100
         hp_bar = img[coor[1]:coor[1]+1, coor[0]+1:coor[0]+106]
         output['health'] = get_hp_value(hp_bar)
-        output['level'] = crop(img, (coor[0]-22, coor[1]-12, 19, 21))
+        output['level'] = get_summoner_level(
+            crop(img, (coor[0]-22, coor[1]-12, 19, 21)), LEVEL_OCR)
         output['is_turret'] = tuple(img[coor_offset(coor, (-2, 0), size)]) == (0, 36, 21)
     elif mappings[nearest_color] == 'structure':
         output['name'] = 'structure'
@@ -111,29 +128,48 @@ def identify_turret_aggro(contour, area):
     return None
 
 
+def get_dependent_objects(objects):
+    objects['shield_minion'] = lfilter(lambda o: o['is_turret'], objects['ally_minion'])
+    objects['player_champion'] = (None if objects['player_champion'] ==
+                                  [] else objects['player_champion'][0])
+    if len(objects['enemy_champion']) > 0:
+        objects['enemy_champion'].sort(key=lambda o: o['health'])
+        objects['lowest_enemy_champion'] = objects['enemy_champion'][0]
+    else:
+        objects['lowest_enemy_champion'] = None
+    if len(objects['enemy_champion']) > 0 and objects['player_champion'] is not None:
+        for champion in objects['enemy_champion']:
+            champion['distance'] = distance(
+                champion['center'], objects['player_champion']['center'])
+        objects['enemy_champion'].sort(key=lambda o: o['distance'])
+        objects['closest_enemy_champion'] = objects['enemy_champion'][0]
+    else:
+        objects['closest_enemy_champion'] = None
+
+
 def get_objects(analytics, img, start, end):
     ''' Finds the league objects '''
     analytics.start_timer('get_objects', 'Finding objects')
     threshed = cv2.inRange(img, start, end)
     contours, _ = cv2.findContours(
         threshed, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    objects = []
+    objects = dict(zip(Objects._fields, [[] for _ in range(len(Objects._fields))]))
     for contour in contours:
         area = cv2.contourArea(contour)
         turret_aggro = identify_turret_aggro(contour, area)
         if turret_aggro is not None:
-            objects.append(turret_aggro)
+            objects['turret_aggro'].append(turret_aggro)
             continue
         turret = identify_turret(contour, area)
         if turret is not None:
-            objects.append(turret)
+            objects['turret'].append(turret)
             continue
-        if area == 0:
-            obj = identify_object(img, tuple(contour[0][0]))
-            if obj is not None:
-                objects.append(obj)
+        obj = identify_object(img, contour, area)
+        if obj is not None:
+            objects[obj['name']].append(obj)
+    get_dependent_objects(objects)
     analytics.end_timer('get_objects')
-    return objects
+    return Objects(**objects)
 
 
 def is_camera_locked(img):

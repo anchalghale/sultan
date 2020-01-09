@@ -2,7 +2,6 @@
 import argparse
 import glob
 import time
-import collections
 
 import cv2
 import keyboard
@@ -17,17 +16,20 @@ from lutils import wait_league_window
 from lvision.utils import draw_objects
 from lvision import (is_camera_locked, get_level_ups, get_minimap_coor,
                      get_objects, get_abilities, get_ability_points,
-                     get_minimap_areas, get_gold, get_summoner_spells, get_attack_speed, get_summoner_level)
+                     get_minimap_areas, get_gold, get_summoner_spells, get_attack_speed)
 
 from lvision.ocr import Ocr
 
 from constants import ANALYTICS_IGNORE
 
+GOLD_OCR = Ocr(threshold=200000)
+GOLD_OCR.load_model('lvision/ocr/trained/gold.yml')
 
-OCR = collections.namedtuple('ocr', 'gold spell level')
+SPELL_OCR = Ocr()
+SPELL_OCR.load_model('lvision/ocr/trained/summoner_spell.yml')
 
 
-def tick(logger, analytics, resources, img, ocr):
+def tick(logger, analytics, resources, img):
     ''' Simulates a single tick of the bot '''
     analytics.start_timer()
     coor = get_minimap_coor(analytics, img)
@@ -37,15 +39,15 @@ def tick(logger, analytics, resources, img, ocr):
     logger.log(get_ability_points(img))
     logger.log(get_level_ups(img))
     logger.log(areas)
-    logger.log(f'Gold: {get_gold(img, ocr.gold)}')
-    logger.log(f'Attack speed: {get_attack_speed(img, ocr.gold)}')
-    logger.log(get_summoner_spells(img, ocr.spell))
+    logger.log(f'Gold: {get_gold(img, GOLD_OCR)}')
+    logger.log(f'Attack speed: {get_attack_speed(img, GOLD_OCR)}')
+    logger.log(get_summoner_spells(img, SPELL_OCR))
     logger.log(f'Minimap coor: {coor}')
     objs = get_objects(analytics, img, (190, 0, 190), (255, 20, 255))
-    coor = [obj['coor'] for obj in objs if obj['name'] == 'player_champion']
-    logger.log(f'Level: {get_summoner_level(img, ocr.level, coor[0])}')
-    enemy_minions = list(filter(lambda o: o['name'] == 'enemy_minion', objs))
-    enemy_minions.sort(key=lambda o: o['health'])
+    # coor = [obj['coor'] for obj in objs if obj['name'] == 'player_champion']
+    # logger.log(f'Level: {get_summoner_level(img, ocr.level, coor[0])}')
+    # enemy_minions = list(filter(lambda o: o['name'] == 'enemy_minion', objs))
+    # enemy_minions.sort(key=lambda o: o['health'])
     analytics.end_timer()
     return objs
 
@@ -60,16 +62,7 @@ def main():
 
     logger = CliLogger()
     screen = Screen()
-    gold_ocr = Ocr(threshold=200000)
-    gold_ocr.load_model('lvision/ocr/trained/gold.yml')
 
-    spell_ocr = Ocr()
-    spell_ocr.load_model('lvision/ocr/trained/summoner_spell.yml')
-
-    level_ocr = Ocr()
-    level_ocr.load_model('lvision/ocr/trained/summoner_level.yml')
-
-    ocr = OCR(gold_ocr, spell_ocr, level_ocr)
     analytics = Analytics(logger)
     resources = Resources()
     analytics.ignore = ANALYTICS_IGNORE
@@ -87,7 +80,7 @@ def main():
             if img is None:
                 continue
             img_bgr = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-            objs = tick(logger, analytics, resources, img, ocr)
+            objs = tick(logger, analytics, resources, img)
             draw_objects(img_bgr, objs, wait=False, title='League Vision - Interactive')
             logger.log('Press and hold x to exit bot.')
             logger.log('-'*50)
@@ -102,7 +95,7 @@ def main():
     for file in files:
         img_bgr = cv2.imread(file)
         img = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
-        objs = tick(logger, analytics, resources, img, ocr)
+        objs = tick(logger, analytics, resources, img)
         logger.log('Press x to exit.')
         logger.log('-'*50)
         if draw_objects(img_bgr, objs, title=f'League Vision - {file}') == 120:
