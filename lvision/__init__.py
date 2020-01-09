@@ -1,6 +1,4 @@
 ''' Object detection module '''
-import collections
-
 import cv2
 import numpy
 
@@ -19,16 +17,10 @@ from .level import get_summoner_level
 from .ocr import Ocr
 from .constants import MINIMAP_AREAS, CAMERA_LOCK, LEVEL_Q, LEVEL_W, LEVEL_E, LEVEL_R
 from .exceptions import NoCharacterInMinimap
-from .utils import lfilter
+from .utils import lfilter, Objects
 
 LEVEL_OCR = Ocr()
 LEVEL_OCR.load_model('lvision/ocr/trained/summoner_level.yml')
-
-
-Objects = collections.namedtuple(
-    'Objects',
-    'player_champion enemy_champion lowest_enemy_champion closest_enemy_champion shield_minion '
-    'structure monster ally_minion enemy_minion small_monster turret_aggro turret ')
 
 
 def get_small_hp_value(hp_img):
@@ -129,9 +121,19 @@ def identify_turret_aggro(contour, area):
 
 
 def get_dependent_objects(objects):
+    ''' Finds the objects from exisiting objects '''
     objects['shield_minion'] = lfilter(lambda o: o['is_turret'], objects['ally_minion'])
     objects['player_champion'] = (None if objects['player_champion'] ==
                                   [] else objects['player_champion'][0])
+
+    if objects['enemy_minion'] != [] and objects['player_champion'] is not None:
+        for minion in objects['enemy_minion']:
+            minion['distance'] = distance(
+                minion['center'], objects['player_champion']['center'])
+        objects['enemy_minion'].sort(key=lambda o: o['distance'])
+        objects['closest_enemy_minion'] = objects['enemy_minion'][0]
+    else:
+        objects['closest_enemy_minion'] = None
     if len(objects['enemy_champion']) > 0:
         objects['enemy_champion'].sort(key=lambda o: o['health'])
         objects['lowest_enemy_champion'] = objects['enemy_champion'][0]

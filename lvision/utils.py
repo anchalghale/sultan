@@ -1,5 +1,13 @@
 ''' Utility functions of lvision package '''
+import collections
+
 import cv2
+
+Objects = collections.namedtuple(
+    'Objects',
+    'player_champion enemy_champion lowest_enemy_champion closest_enemy_champion shield_minion '
+    'structure monster ally_minion enemy_minion closest_enemy_minion small_monster turret_aggro '
+    'turret plant ')
 
 
 def lfilter(function, iterable):

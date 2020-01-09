@@ -15,7 +15,6 @@ from cooldown import Cooldown
 from window import find_rect
 
 from lutils import wait_league_window
-from lvision.filter import filter_objects
 from lvision.state import get_game_state
 from lvision.ocr import Ocr
 from lvision import (is_camera_locked, get_level_ups, get_ability_points,
@@ -24,7 +23,7 @@ from lvision import (is_camera_locked, get_level_ups, get_ability_points,
 
 
 from bot.exceptions import BotContinueException, BotExitException
-from bot import goto_lane, goto_enemy_base, evade, move_forward, level_up, poke, orb_walk, kite
+from bot import goto_lane, evade, move_forward, level_up, poke, orb_walk, kite
 
 from constants import LEVEL_UP_SEQUENCE, ANALYTICS_IGNORE, COOLDOWNS
 
@@ -47,64 +46,68 @@ def tick(utility):
     abilities = get_abilities(img)
     attack_speed = get_attack_speed(img, utility.ocr)
     objects = get_objects(utility.analytics, img, (190, 0, 190), (255, 20, 255))
-    fobjects = filter_objects(objects, areas)
-    state = get_game_state(fobjects, areas)
+    state = get_game_state(objects, areas)
     utility.analytics.end_timer()
     if areas.is_turret and state.is_enemy_turret and not state.is_shielded:
         evade(utility.cooldown, areas)
         raise BotContinueException
-    if len(fobjects.turret_aggros) > 0:
+    if len(objects.turret_aggro) > 0:
         evade(utility.cooldown, areas)
         raise BotContinueException
-    if state.enemy_minions_dps >= 10 and len(fobjects.enemy_champions) == 0:
-        evade(utility.cooldown, areas)
+    if state.enemy_minions_dps >= 10 and len(objects.enemy_champion) == 0:
+        if objects.closest_enemy_minion:
+            kite(areas, objects.closest_enemy_minion['center'], attack_speed)
+        else:
+            evade(utility.cooldown, areas)
         raise BotContinueException
     if state.enemy_minions_dps + state.enemy_champions_dps > state.player_champions_dps:
         evade(utility.cooldown, areas)
         raise BotContinueException
-    if fobjects.enemy_kill_pressure:
-        if abilities.e:
-            mouse.move(*fobjects.lowest_enemy_champion['center'])
-            keyboard.press_and_release('e')
-        kite(areas, fobjects.lowest_enemy_champion['center'], attack_speed)
-        raise BotContinueException
-    if fobjects.kill_pressure:
-        if abilities.w:
-            keyboard.press_and_release('w')
-        if abilities.q:
-            keyboard.press_and_release('q')
-        if abilities.e:
-            mouse.move(*fobjects.lowest_enemy_champion['center'])
-            keyboard.press_and_release('e')
-        orb_walk(areas, fobjects.lowest_enemy_champion['center'], attack_speed)
-        raise BotContinueException
-    if(fobjects.closest_enemy_champion is not None and
-       fobjects.closest_enemy_champion['distance'] < 300 and
-       len(fobjects.turrets) <= 0 and
-       state.potential_enemy_minions_dps <= 30):
-        if not fobjects.closest_enemy_champion['is_turret']:
-            poke(areas, fobjects.closest_enemy_champion['center'], attack_speed)
+    if objects.enemy_champion != [] and objects.closest_enemy_champion['distance'] < 400:
+        if state.enemy_kill_pressure:
+            if abilities.e:
+                mouse.move(*objects.lowest_enemy_champion['center'])
+                keyboard.press_and_release('e')
+            kite(areas, objects.lowest_enemy_champion['center'], attack_speed)
+            raise BotContinueException
+        if state.kill_pressure:
+            if abilities.w:
+                keyboard.press_and_release('w')
+            if abilities.q:
+                keyboard.press_and_release('q')
+            if abilities.e:
+                mouse.move(*objects.lowest_enemy_champion['center'])
+                keyboard.press_and_release('e')
+            orb_walk(areas, objects.lowest_enemy_champion['center'], attack_speed)
             raise BotContinueException
         evade(utility.cooldown, areas)
         raise BotContinueException
-    if fobjects.open_structures != []:
-        if abilities.w:
-            keyboard.press_and_release('w')
-        fobjects.enemy_minions.sort(key=lambda o: o['health'])
-        mouse.move(*fobjects.open_structures[0]['center'])
-        mouse.click()
+    if(objects.closest_enemy_champion is not None and
+       objects.closest_enemy_champion['distance'] < 300 and
+       len(objects.turret) <= 0 and
+       state.potential_enemy_minions_dps <= 30):
+        if not objects.closest_enemy_champion['is_turret']:
+            poke(areas, objects.closest_enemy_champion['center'], attack_speed)
+            raise BotContinueException
+        evade(utility.cooldown, areas)
         raise BotContinueException
+    # if fobjects.open_structures != []:
+    #     if abilities.w:
+    #         keyboard.press_and_release('w')
+    #     fobjects.enemy_minions.sort(key=lambda o: o['health'])
+    #     mouse.move(*fobjects.open_structures[0]['center'])
+    #     mouse.click()
+    #     raise BotContinueException
     if state.is_enemy_turret and state.is_shielded:
         if abilities.w:
             keyboard.press_and_release('w')
-        mouse.move(*fobjects.turrets[0]['center'])
+        mouse.move(*objects.turret[0]['center'])
         mouse.click()
         raise BotContinueException
-    if fobjects.enemy_minions != []:
+    if objects.closest_enemy_minion:
         if abilities.w:
             keyboard.press_and_release('w')
-        fobjects.enemy_minions.sort(key=lambda o: o['health'])
-        mouse.move(*fobjects.enemy_minions[0]['center'])
+        mouse.move(*objects.closest_enemy_minion['center'])
         mouse.click()
         raise BotContinueException
     if ((areas.is_lane or (areas.is_base and areas.is_chaos_side)) and
@@ -113,9 +116,6 @@ def tick(utility):
         raise BotContinueException
     if not (areas.is_chaos_side and areas.is_lane):
         goto_lane(utility.cooldown)
-        raise BotContinueException
-    if len(fobjects.shield_minions) > 2:
-        goto_enemy_base(utility.cooldown)
         raise BotContinueException
 
 

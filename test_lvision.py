@@ -14,7 +14,7 @@ from window import find_rect
 
 from lutils import wait_league_window
 from lvision.utils import draw_objects
-from lvision import (is_camera_locked, get_level_ups, get_minimap_coor,
+from lvision import (is_camera_locked, get_level_ups, get_minimap_coor, get_game_state,
                      get_objects, get_abilities, get_ability_points,
                      get_minimap_areas, get_gold, get_summoner_spells, get_attack_speed)
 
@@ -34,20 +34,18 @@ def tick(logger, analytics, resources, img):
     analytics.start_timer()
     coor = get_minimap_coor(analytics, img)
     areas = get_minimap_areas(analytics, resources.images, coor)
+    objs = get_objects(analytics, img, (190, 0, 190), (255, 20, 255))
     logger.log(f'Camera locked: {is_camera_locked(img)}')
     logger.log(get_abilities(img))
     logger.log(get_ability_points(img))
     logger.log(get_level_ups(img))
     logger.log(areas)
+    logger.log(get_game_state(objs, areas))
     logger.log(f'Gold: {get_gold(img, GOLD_OCR)}')
     logger.log(f'Attack speed: {get_attack_speed(img, GOLD_OCR)}')
     logger.log(get_summoner_spells(img, SPELL_OCR))
     logger.log(f'Minimap coor: {coor}')
-    objs = get_objects(analytics, img, (190, 0, 190), (255, 20, 255))
-    # coor = [obj['coor'] for obj in objs if obj['name'] == 'player_champion']
-    # logger.log(f'Level: {get_summoner_level(img, ocr.level, coor[0])}')
-    # enemy_minions = list(filter(lambda o: o['name'] == 'enemy_minion', objs))
-    # enemy_minions.sort(key=lambda o: o['health'])
+
     analytics.end_timer()
     return objs
 
@@ -90,7 +88,7 @@ def main():
     if args.all:
         files = glob.glob('screenshots/*.png')
     else:
-        files = ['screenshots/Screen144.png']
+        files = glob.glob('screenshots/*.png')[:1]
 
     for file in files:
         img_bgr = cv2.imread(file)
