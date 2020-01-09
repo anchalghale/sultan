@@ -17,16 +17,14 @@ from lutils import wait_league_window
 from lvision.utils import draw_objects
 from lvision import (is_camera_locked, get_level_ups, get_minimap_coor,
                      get_objects, get_abilities, get_ability_points,
-                     get_minimap_areas)
+                     get_minimap_areas, get_gold, get_summoner_spells, get_attack_speed, get_summoner_level)
+
 from lvision.ocr import Ocr
-from lvision.gold import get_gold
-from lvision.sums import get_summoner_spells
-from lvision.stats import get_attack_speed
 
 from constants import ANALYTICS_IGNORE
 
 
-OCR = collections.namedtuple('ocr', 'gold spell')
+OCR = collections.namedtuple('ocr', 'gold spell level')
 
 
 def tick(logger, analytics, resources, img, ocr):
@@ -44,6 +42,8 @@ def tick(logger, analytics, resources, img, ocr):
     logger.log(get_summoner_spells(img, ocr.spell))
     logger.log(f'Minimap coor: {coor}')
     objs = get_objects(analytics, img, (190, 0, 190), (255, 20, 255))
+    coor = [obj['coor'] for obj in objs if obj['name'] == 'player_champion']
+    logger.log(f'Level: {get_summoner_level(img, ocr.level, coor[0])}')
     enemy_minions = list(filter(lambda o: o['name'] == 'enemy_minion', objs))
     enemy_minions.sort(key=lambda o: o['health'])
     analytics.end_timer()
@@ -66,8 +66,10 @@ def main():
     spell_ocr = Ocr()
     spell_ocr.load_model('lvision/ocr/trained/summoner_spell.yml')
 
-    ocr = OCR(gold_ocr, spell_ocr)
-    print(ocr)
+    level_ocr = Ocr()
+    level_ocr.load_model('lvision/ocr/trained/summoner_level.yml')
+
+    ocr = OCR(gold_ocr, spell_ocr, level_ocr)
     analytics = Analytics(logger)
     resources = Resources()
     analytics.ignore = ANALYTICS_IGNORE
