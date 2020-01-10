@@ -13,14 +13,15 @@ from .stats import get_attack_speed
 from .gold import get_gold
 from .sums import get_summoner_spells
 from .level import get_summoner_level
+from .items import get_summoner_items
 
-from .ocr import Ocr
+from .knearest import KNearest
 from .constants import MINIMAP_AREAS, CAMERA_LOCK, LEVEL_Q, LEVEL_W, LEVEL_E, LEVEL_R
 from .exceptions import NoCharacterInMinimap
 from .utils import lfilter, Objects
 
-LEVEL_OCR = Ocr()
-LEVEL_OCR.load_model('lvision/ocr/trained/summoner_level.yml')
+LEVEL_OCR = KNearest()
+LEVEL_OCR.load_model('lvision/knearest/trained/summoner_level.yml')
 
 
 def get_small_hp_value(hp_img):

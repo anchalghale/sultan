@@ -16,17 +16,11 @@ from lutils import wait_league_window
 from lvision.utils import draw_objects
 from lvision import (is_camera_locked, get_level_ups, get_minimap_coor, get_game_state,
                      get_objects, get_abilities, get_ability_points,
-                     get_minimap_areas, get_gold, get_summoner_spells, get_attack_speed)
+                     get_minimap_areas, get_gold, get_summoner_spells,
+                     get_attack_speed, get_summoner_items)
 
-from lvision.ocr import Ocr
 
 from constants import ANALYTICS_IGNORE
-
-GOLD_OCR = Ocr(threshold=200000)
-GOLD_OCR.load_model('lvision/ocr/trained/gold.yml')
-
-SPELL_OCR = Ocr()
-SPELL_OCR.load_model('lvision/ocr/trained/summoner_spell.yml')
 
 
 def tick(logger, analytics, resources, img):
@@ -41,9 +35,10 @@ def tick(logger, analytics, resources, img):
     logger.log(get_level_ups(img))
     logger.log(areas)
     logger.log(get_game_state(objs, areas))
-    logger.log(f'Gold: {get_gold(img, GOLD_OCR)}')
-    logger.log(f'Attack speed: {get_attack_speed(img, GOLD_OCR)}')
-    logger.log(get_summoner_spells(img, SPELL_OCR))
+    logger.log(f'Gold: {get_gold(img, resources.models["gold"])}')
+    logger.log(f'Attack speed: {get_attack_speed(img, resources.models["gold"])}')
+    logger.log(get_summoner_spells(img, resources.models["summoner_spell"]))
+    logger.log(get_summoner_items(img, resources.models["summoner_item"]))
     logger.log(f'Minimap coor: {coor}')
 
     analytics.end_timer()
