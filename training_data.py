@@ -54,7 +54,7 @@ def tick(label_input, change_img, img):
     export_data(label_input, change_img, img, (619, 731, 12, 12))  # item 1
     export_data(label_input, change_img, img, (642, 731, 12, 12))  # item 1
 
-    export_data(label_input, change_img, img, (664, 709, 12, 12))  # trinklet 1
+    # export_data(label_input, change_img, img, (664, 709, 12, 12))  # trinklet 1
 
 
 def main():
@@ -89,7 +89,7 @@ def main():
     if args.all:
         files = glob.glob('screenshots/*.png')
     else:
-        files = ['screenshots/Screen226.png']
+        files = [glob.glob('screenshots/*.png')[0]]
     for file in files:
         img = cv2.imread(file)
         tick_gui(img)

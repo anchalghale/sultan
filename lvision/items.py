@@ -1,16 +1,20 @@
 '''Module to detect summoner items'''
-import collections
 import cv2
 
-from cutils import crop
+from cutils import crop, get_color_diff
 
-Items = collections.namedtuple('Items', 'one two three five six seven')
 RECTANGLES = [(596, 709, 12, 12),
               (619, 709, 12, 12),
               (642, 709, 12, 12),
               (596, 731, 12, 12),
               (619, 731, 12, 12),
               (642, 731, 12, 12)]
+
+MAPPING = {
+    -1: None,
+    0: '''Doran's Blade''',
+    1: '''Health Potion''',
+}
 
 
 def get_summoner_items(image, knearest):
@@ -23,6 +27,11 @@ def get_summoner_items(image, knearest):
 
     for rect in RECTANGLES:
         img = prepare(image, rect)
-        items.append(knearest.predict(img))
+        items.append(MAPPING[knearest.predict(img)])
 
-    return Items(*items)
+    return items
+
+
+def get_is_shop(img):
+    ''' Returns if the shop menu is open or not '''
+    return get_color_diff(img[5, 906], [136, 123, 60]) < 10

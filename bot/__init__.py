@@ -7,13 +7,6 @@ import keyboard
 
 from cutils import humanize
 
-# DOWN = 509, 477
-# UP = 506, 146
-# RIGHT = 672, 341
-# LEFT = 299, 342
-# DOWN_LEFT = 410, 460
-# UP_RIGHT = 665, 220
-
 DOWN = numpy.array([0, 1])
 UP = numpy.array([0, -1])
 RIGHT = numpy.array([1.5, 0])
@@ -21,7 +14,16 @@ LEFT = numpy.array([-1.5, 0])
 DOWN_LEFT = numpy.array([-1.5, 1])
 UP_RIGHT = numpy.array([1.5, -1])
 
+ITEMS = [(163, 146), (212, 146)]
+
 MAX_OFFSET = 25
+
+
+def buy_item(index):
+    ''' Buys item '''
+    mouse.move(*ITEMS[index])
+    mouse.right_click()
+    time.sleep(1)
 
 
 def goto_lane(cooldown, lane='bot'):
@@ -32,7 +34,6 @@ def goto_lane(cooldown, lane='bot'):
         mouse.move(*humanize((931, 663)))
     else:
         mouse.move(*humanize((993, 730)))
-
     mouse.right_click()
     cooldown.start_timer('goto_lane')
 
