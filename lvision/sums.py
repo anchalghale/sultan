@@ -24,7 +24,7 @@ def get_summoner_spells(img, knearest):
         nonlocal spells
         img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
         img = crop(img, rect)
-        spell = MAPPING[knearest.predict(img)]
+        spell = MAPPING[knearest['summoner_spell'].predict(img)]
         spells[spell] = {'spell': spell, 'key': key}
     predict(img, (534, 707, 19, 16), 'd')
     predict(img, (558, 707, 19, 16), 'f')

@@ -27,7 +27,7 @@ def get_summoner_items(image, knearest):
 
     for rect in RECTANGLES:
         img = prepare(image, rect)
-        items.append(MAPPING[knearest.predict(img)])
+        items.append(MAPPING[knearest['summoner_item'].predict(img)])
 
     return items
 

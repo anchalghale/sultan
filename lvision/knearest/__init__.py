@@ -16,12 +16,15 @@ class KNearest:
         '''Load model from given path'''
         self.model = cv2.ml.KNearest_load(path)
 
-    def predict(self, image):
+    def predict(self, image, threshold=True):
         '''Predict number in image'''
         img = image.reshape((1, image.shape[0]*image.shape[1]))
         data = np.float32(img)
         _, results, _, dists = self.model.findNearest(data, k=1)
-        return int((results[0][0])) if self.threshold is None or int(dists[0][0]) < self.threshold else ''
+        if not threshold:
+            return int(results[0][0])
+        return int((results[0][0])) if self.threshold is None or\
+            int(dists[0][0]) < self.threshold else ''
 
     def train(self, samples, responses):
         '''Train the model'''

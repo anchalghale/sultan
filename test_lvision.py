@@ -17,7 +17,7 @@ from lvision.utils import draw_objects
 from lvision import (is_camera_locked, get_level_ups, get_minimap_coor, get_game_state,
                      get_objects, get_abilities, get_ability_points, get_is_shop,
                      get_minimap_areas, get_gold, get_summoner_spells,
-                     get_attack_speed, get_summoner_items)
+                     get_attack_speed, get_summoner_items, get_game_time)
 
 
 from constants import ANALYTICS_IGNORE
@@ -35,10 +35,11 @@ def tick(logger, analytics, resources, img):
     logger.log(get_level_ups(img))
     logger.log(areas)
     logger.log(get_game_state(objs, areas))
-    logger.log(f'Gold: {get_gold(img, resources.models["gold"])}')
-    logger.log(f'Attack speed: {get_attack_speed(img, resources.models["gold"])}')
-    logger.log(get_summoner_spells(img, resources.models["summoner_spell"]))
-    logger.log(get_summoner_items(img, resources.models["summoner_item"]))
+    logger.log(f'Gold: {get_gold(img, resources.models)}')
+    logger.log(f'Attack speed: {get_attack_speed(img, resources.models)}')
+    logger.log(get_summoner_spells(img, resources.models))
+    logger.log(get_summoner_items(img, resources.models))
+    logger.log(f'Time: {get_game_time(img, resources.models)} minute(s)')
     logger.log(f'Minimap coor: {coor}')
     logger.log(f'Is shop: {get_is_shop(img)}')
     analytics.end_timer()
