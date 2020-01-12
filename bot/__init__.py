@@ -14,6 +14,12 @@ LEFT = numpy.array([-1.5, 0])
 DOWN_LEFT = numpy.array([-1.5, 1])
 UP_RIGHT = numpy.array([1.5, -1])
 
+TELEPORT_LOCATIONS = {
+    'top': (848, 631),
+    'mid': (907, 681),
+    'bot': (961, 746),
+}
+
 ITEMS = [(163, 146), (212, 146)]
 
 MAX_OFFSET = 25
@@ -24,6 +30,14 @@ def buy_item(index):
     mouse.move(*ITEMS[index])
     mouse.right_click()
     time.sleep(1)
+
+
+def teleport(key, lane='bot'):
+    ''' Teleports to lane '''
+    mouse.move(*humanize(TELEPORT_LOCATIONS[lane]))
+    time.sleep(0.5)
+    keyboard.press_and_release(key)
+    time.sleep(5)
 
 
 def goto_lane(cooldown, lane='bot'):

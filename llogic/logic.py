@@ -7,11 +7,17 @@ import mouse
 from lvision.state import get_game_state
 from lvision import (is_camera_locked, get_level_ups, get_ability_points, get_is_shop,
                      get_abilities, get_attack_speed, get_gold, get_summoner_items,
-                     get_minimap_coor, get_minimap_areas, get_objects)
+                     get_minimap_coor, get_minimap_areas, get_objects, get_summoner_spells)
 
-from bot import goto_lane, evade, move_forward, level_up, poke, kite, buy_item
+from bot import goto_lane, evade, move_forward, level_up, poke, kite, buy_item, teleport
 from bot.exceptions import BotContinueException
 from constants import LEVEL_UP_SEQUENCE
+
+
+def use_spells(areas, spells):
+    ''' Uses summoner spells '''
+    if areas.is_platform and 'teleport' in spells:
+        teleport(spells['teleport']['key'])
 
 
 class Logic:
@@ -49,13 +55,16 @@ class Logic:
         coor = get_minimap_coor(utility.analytics, img)
         areas = get_minimap_areas(utility.analytics, utility.resources.images, coor)
         abilities = get_abilities(img)
-        attack_speed = get_attack_speed(img, utility.resources.models["gold"])
-        gold = get_gold(img, utility.resources.models["gold"])
-        items = get_summoner_items(img, utility.resources.models["summoner_item"])
+        attack_speed = get_attack_speed(img, utility.resources.models['gold'])
+        gold = get_gold(img, utility.resources.models['gold'])
+        items = get_summoner_items(img, utility.resources.models['summoner_item'])
         is_shop = get_is_shop(img)
+        spells = get_summoner_spells(img, utility.resources.models['summoner_spell'])
         objects = get_objects(utility.analytics, img, (190, 0, 190), (255, 20, 255))
         state = get_game_state(objects, areas)
         utility.analytics.end_timer()
+
+        use_spells(areas, spells)
         self.buy_items(is_shop, gold, items)
         if areas.is_turret and state.is_enemy_turret and not state.is_shielded:
             evade(utility.cooldown, areas)

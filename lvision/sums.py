@@ -1,19 +1,31 @@
 '''Module to detect summoner level'''
-import collections
 import cv2
 
 from cutils import crop
 
-Spells = collections.namedtuple('Spells', 'd f')
+MAPPING = [
+    'barrier',
+    'cooldown',
+    'exhaust',
+    'flash',
+    'ghost',
+    'heal',
+    'ignite',
+    'smite',
+    'teleport',
+]
 
 
-def get_summoner_spells(image, knearest):
+def get_summoner_spells(img, knearest):
     '''Finds summoner spell'''
-    img = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-    img = crop(img, (534, 707, 19, 16))
-    spell_d = knearest.predict(img)
+    spells = {}
 
-    img = crop(image, (558, 707, 19, 16))
-    img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-    spell_f = knearest.predict(img)
-    return Spells(spell_d, spell_f)
+    def predict(img, rect, key):
+        nonlocal spells
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        img = crop(img, rect)
+        spell = MAPPING[knearest.predict(img)]
+        spells[spell] = {'spell': spell, 'key': key}
+    predict(img, (534, 707, 19, 16), 'd')
+    predict(img, (558, 707, 19, 16), 'f')
+    return spells
