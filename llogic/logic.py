@@ -9,15 +9,36 @@ from lvision import (is_camera_locked, get_level_ups, get_ability_points, get_is
                      get_abilities, get_attack_speed, get_gold, get_summoner_items,
                      get_minimap_coor, get_minimap_areas, get_objects, get_summoner_spells)
 
-from bot import goto_lane, evade, move_forward, level_up, poke, kite, buy_item, teleport
+from bot import goto_lane, evade, move_forward, level_up, poke, kite, buy_item, teleport, base
 from bot.exceptions import BotContinueException
 from constants import LEVEL_UP_SEQUENCE
 
 
-def use_spells(areas, spells):
+def use_spells(areas, spells, level):
     ''' Uses summoner spells '''
-    if areas.is_platform and 'teleport' in spells:
+    if areas.is_platform and 'teleport' in spells and level > 1:
         teleport(spells['teleport']['key'])
+
+
+def goto_lane_logic(utility, areas, level):
+    ''' Moving to lane logic '''
+    if level <= 1:
+        if not (areas.is_map_divide and areas.is_lane):
+            goto_lane(utility.cooldown)
+            raise BotContinueException
+    else:
+        if not (areas.is_chaos_side and areas.is_lane):
+            goto_lane(utility.cooldown)
+            raise BotContinueException
+        else:
+            move_forward(utility.cooldown, areas)
+
+
+def base_logic(coor, gold, items):
+    ''' Basing logic '''
+    if gold >= 2250 and items.count(None) >= 1:
+        base(coor)
+        raise BotContinueException
 
 
 class Logic:
@@ -26,9 +47,11 @@ class Logic:
     def __init__(self):
         self.command = None
 
-    def buy_items(self, is_shop, gold, items):
+    def buy_items(self, areas, is_shop, gold, items):
         ''' Buys items '''
         if gold == 500 and all(i is None for i in items):
+            self.command = 'buy_items'
+        if gold >= 2250 and areas.is_platform:
             self.command = 'buy_items'
         if self.command == 'buy_items':
             if not is_shop:
@@ -38,6 +61,13 @@ class Logic:
             if gold == 500:
                 buy_item(0)
                 buy_item(1)
+                self.command = None
+            elif gold >= 2250:
+                buy_item(0)
+                buy_item(0)
+                buy_item(0)
+                buy_item(0)
+                buy_item(0)
                 self.command = None
         if self.command != 'buy_items':
             if is_shop:
@@ -55,17 +85,20 @@ class Logic:
         coor = get_minimap_coor(utility.analytics, img)
         areas = get_minimap_areas(utility.analytics, utility.resources.images, coor)
         abilities = get_abilities(img)
-        attack_speed = get_attack_speed(img, utility.resources.models['gold'])
-        gold = get_gold(img, utility.resources.models['gold'])
-        items = get_summoner_items(img, utility.resources.models['summoner_item'])
+        attack_speed = get_attack_speed(img, utility.resources.models)
+        gold = get_gold(img, utility.resources.models)
+        items = get_summoner_items(img, utility.resources.models)
         is_shop = get_is_shop(img)
-        spells = get_summoner_spells(img, utility.resources.models['summoner_spell'])
+        spells = get_summoner_spells(img, utility.resources.models)
         objects = get_objects(utility.analytics, img, (190, 0, 190), (255, 20, 255))
+        level = -1 if objects.player_champion is None else objects.player_champion['level']
         state = get_game_state(objects, areas)
         utility.analytics.end_timer()
 
-        use_spells(areas, spells)
-        self.buy_items(is_shop, gold, items)
+        self.buy_items(areas, is_shop, gold, items)
+        base_logic(coor, gold, items)
+        use_spells(areas, spells, level)
+
         if areas.is_turret and state.is_enemy_turret and not state.is_shielded:
             evade(utility.cooldown, areas)
             raise BotContinueException
@@ -136,10 +169,4 @@ class Logic:
             mouse.move(*objects.closest_enemy_minion['center'])
             mouse.click()
             raise BotContinueException
-        if ((areas.is_lane or (areas.is_base and areas.is_chaos_side)) and
-                not state.is_enemy_turret):
-            move_forward(utility.cooldown, areas)
-            raise BotContinueException
-        if not (areas.is_chaos_side and areas.is_lane):
-            goto_lane(utility.cooldown)
-            raise BotContinueException
+        goto_lane_logic(utility, areas, level)

@@ -5,7 +5,10 @@ import numpy
 import mouse
 import keyboard
 
-from cutils import humanize
+from cutils import humanize, distance
+
+from .constants import BASING_COOR
+from .utils import get_minimap_relative
 
 DOWN = numpy.array([0, 1])
 UP = numpy.array([0, -1])
@@ -32,12 +35,26 @@ def buy_item(index):
     time.sleep(1)
 
 
+def base(coor):
+    ''' Moves to basing position '''
+    distances = [distance(coor[::-1], i) for i in BASING_COOR]
+    min_distance = min(distances)
+    if min_distance <= 5:
+        keyboard.press_and_release('b')
+        time.sleep(10)
+    index = distances.index(min_distance)
+    coor = get_minimap_relative(BASING_COOR[index])
+    mouse.move(*humanize(coor, 1))
+    mouse.right_click()
+    time.sleep(1)
+
+
 def teleport(key, lane='bot'):
     ''' Teleports to lane '''
     mouse.move(*humanize(TELEPORT_LOCATIONS[lane]))
     time.sleep(0.5)
     keyboard.press_and_release(key)
-    time.sleep(5)
+    time.sleep(1)
 
 
 def goto_lane(cooldown, lane='bot'):
@@ -116,7 +133,7 @@ def kite(areas, coor, attack_speed):
     ''' Kite from a coordinate '''
     mouse.move(*coor)
     mouse.click()
-    time.sleep(.7/attack_speed)
+    time.sleep(.5/attack_speed)
     evade_relative(coor, areas)
     time.sleep(.2/attack_speed)
 

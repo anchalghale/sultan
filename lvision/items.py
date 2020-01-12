@@ -17,7 +17,7 @@ MAPPING = {
 }
 
 
-def get_summoner_items(image, knearest):
+def get_summoner_items(image, models):
     '''Finds summoners items'''
     def prepare(image, rect):
         img = crop(image, rect)
@@ -27,7 +27,7 @@ def get_summoner_items(image, knearest):
 
     for rect in RECTANGLES:
         img = prepare(image, rect)
-        items.append(MAPPING[knearest['summoner_item'].predict(img)])
+        items.append(MAPPING[models['summoner_item'].predict(img)])
 
     return items
 

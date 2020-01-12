@@ -1,12 +1,14 @@
 '''Module that contains the analytics function'''
 import time
 
+from logger import CliLogger
+
 
 class Analytics:
     '''Class to display and store analytics'''
 
-    def __init__(self, logger):
-        self.logger = logger
+    def __init__(self, logger=None):
+        self.logger = CliLogger() if logger is None else logger
         self.timers = {}
         self.ignore = []
 
