@@ -9,34 +9,43 @@ from lvision import (is_camera_locked, get_level_ups, get_ability_points, get_is
                      get_abilities, get_attack_speed, get_gold, get_summoner_items,
                      get_minimap_coor, get_minimap_areas, get_objects, get_summoner_spells)
 
-from bot import goto_lane, evade, move_forward, level_up, poke, kite, buy_item, teleport, base
+from champions import Ashe
+
+from bot import (goto_lane, evade, move_forward, level_up,
+                 poke, kite, orb_walk, buy_item, teleport, base)
 from bot.exceptions import BotContinueException
 from constants import LEVEL_UP_SEQUENCE
 
 
-def use_spells(areas, spells, level):
+def use_spells(objects, areas, spells, level):
     ''' Uses summoner spells '''
-    if areas.is_platform and 'teleport' in spells and level > 1:
+    if (objects.player_champion is not None and
+            objects.player_champion['health'] < 20 and 'heal' in spells):
+        keyboard.press_and_release(spells['heal']['key'])
+    if areas.is_base and areas.is_order_side and 'teleport' in spells and level > 1:
         teleport(spells['teleport']['key'])
 
 
-def goto_lane_logic(utility, areas, level):
+def goto_lane_logic(utility, areas, objects, level):
     ''' Moving to lane logic '''
     if level <= 1:
         if not (areas.is_map_divide and areas.is_lane):
             goto_lane(utility.cooldown)
             raise BotContinueException
     else:
+        if areas.is_chaos_side and areas.is_base and objects.turret == []:
+            move_forward(utility.cooldown, areas)
+            raise BotContinueException
         if not (areas.is_chaos_side and areas.is_lane):
             goto_lane(utility.cooldown)
             raise BotContinueException
-        else:
+        if objects.turret == []:
             move_forward(utility.cooldown, areas)
 
 
-def base_logic(coor, gold, items):
+def base_logic(areas, coor, gold, items):
     ''' Basing logic '''
-    if gold >= 2250 and items.count(None) >= 1:
+    if gold >= 3500 and items.count(None) >= 1 and not areas.is_base:
         base(coor)
         raise BotContinueException
 
@@ -46,12 +55,26 @@ class Logic:
 
     def __init__(self):
         self.command = None
+        self.last_health = None
+        self.champion = Ashe
+
+    def get_damage_taken(self, health):
+        ''' Calcuates the damage taken in last tick '''
+        if self.last_health is None:
+            self.last_health = health
+            return None
+        if health is None:
+            return None
+        output = self.last_health - health
+        self.last_health = health
+        return output
 
     def buy_items(self, areas, is_shop, gold, items):
         ''' Buys items '''
         if gold == 500 and all(i is None for i in items):
             self.command = 'buy_items'
-        if gold >= 2250 and areas.is_platform:
+        buyable = min(items.count(None), gold//3500)
+        if buyable > 0 and areas.is_platform:
             self.command = 'buy_items'
         if self.command == 'buy_items':
             if not is_shop:
@@ -62,13 +85,10 @@ class Logic:
                 buy_item(0)
                 buy_item(1)
                 self.command = None
-            elif gold >= 2250:
-                buy_item(0)
-                buy_item(0)
-                buy_item(0)
-                buy_item(0)
-                buy_item(0)
-                self.command = None
+                raise BotContinueException
+            for _ in range(buyable):
+                buy_item('bt')
+            self.command = None
         if self.command != 'buy_items':
             if is_shop:
                 keyboard.press_and_release('p')
@@ -92,17 +112,25 @@ class Logic:
         spells = get_summoner_spells(img, utility.resources.models)
         objects = get_objects(utility.analytics, img, (190, 0, 190), (255, 20, 255))
         level = -1 if objects.player_champion is None else objects.player_champion['level']
+        health = None if objects.player_champion is None else objects.player_champion['health']
+        damage_taken = self.get_damage_taken(health)
         state = get_game_state(objects, areas)
         utility.analytics.end_timer()
-
         self.buy_items(areas, is_shop, gold, items)
-        base_logic(coor, gold, items)
-        use_spells(areas, spells, level)
+        base_logic(areas, coor, gold, items)
+        use_spells(objects, areas, spells, level)
 
         if areas.is_turret and state.is_enemy_turret and not state.is_shielded:
             evade(utility.cooldown, areas)
             raise BotContinueException
         if len(objects.turret_aggro) > 0:
+            evade(utility.cooldown, areas)
+            raise BotContinueException
+        if state.kill_pressure:
+            self.champion.attack_champion(objects, abilities)
+            orb_walk(areas, objects.lowest_enemy_champion['center'], attack_speed)
+            raise BotContinueException
+        if damage_taken is not None and damage_taken <= -10:
             evade(utility.cooldown, areas)
             raise BotContinueException
         if state.enemy_minions_dps >= 10 and len(objects.enemy_champion) == 0:
@@ -116,57 +144,18 @@ class Logic:
             raise BotContinueException
         if objects.enemy_champion != [] and objects.closest_enemy_champion['distance'] < 300:
             if state.enemy_kill_pressure:
-                if abilities.e:
-                    mouse.move(*objects.lowest_enemy_champion['center'])
-                    keyboard.press_and_release('e')
-                if state.is_kitable:
-                    kite(areas, objects.lowest_enemy_champion['center'], attack_speed)
-                else:
-                    evade(utility.cooldown, areas)
+                kite(areas, objects.closest_enemy_champion['center'], attack_speed)
                 raise BotContinueException
-            # if state.kill_pressure:
-            #     if abilities.w:
-            #         keyboard.press_and_release('w')
-            #     if abilities.q:
-            #         keyboard.press_and_release('q')
-            #     if abilities.e:
-            #         mouse.move(*objects.lowest_enemy_champion['center'])
-            #         keyboard.press_and_release('e')
-            #     orb_walk(areas, objects.lowest_enemy_champion['center'], attack_speed)
-            #     raise BotContinueException
             if state.is_pokeable:
-                if abilities.e:
-                    mouse.move(*objects.closest_enemy_champion['center'])
-                    keyboard.press_and_release('e')
-                if abilities.w:
-                    keyboard.press_and_release('w')
                 poke(areas, objects.closest_enemy_champion['center'], attack_speed)
-        # if(objects.closest_enemy_champion is not None and
-        #    objects.closest_enemy_champion['distance'] < 300 and
-        #    len(objects.turret) <= 0 and
-        #    state.potential_enemy_minions_dps <= 30):
-        #     if not objects.closest_enemy_champion['is_turret']:
-        #         poke(areas, objects.closest_enemy_champion['center'], attack_speed)
-        #         raise BotContinueException
-        #     evade(utility.cooldown, areas)
-        #     raise BotContinueException
-        # if fobjects.open_structures != []:
-        #     if abilities.w:
-        #         keyboard.press_and_release('w')
-        #     fobjects.enemy_minions.sort(key=lambda o: o['health'])
-        #     mouse.move(*fobjects.open_structures[0]['center'])
-        #     mouse.click()
-        #     raise BotContinueException
         if state.is_enemy_turret and state.is_shielded:
-            if abilities.w:
-                keyboard.press_and_release('w')
+            self.champion.attack_turret(objects, abilities)
             mouse.move(*objects.turret[0]['center'])
             mouse.click()
             raise BotContinueException
         if objects.closest_enemy_minion:
-            if abilities.w:
-                keyboard.press_and_release('w')
+            self.champion.attack_minion(objects, abilities)
             mouse.move(*objects.closest_enemy_minion['center'])
             mouse.click()
             raise BotContinueException
-        goto_lane_logic(utility, areas, level)
+        goto_lane_logic(utility, areas, objects, level)

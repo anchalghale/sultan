@@ -8,35 +8,22 @@ State = collections.namedtuple(
     'State',
     'is_shielded is_enemy_turret is_enemy_nexus_turret enemy_minions_dps enemy_champions_dps '
     'player_champions_dps potential_enemy_minions_dps kill_pressure enemy_kill_pressure '
-    'is_kitable is_pokeable')
+    'is_pokeable')
 
 
-def get_kill_pressure(objects: Objects):
+def get_kill_pressure(objects: Objects, areas):
     ''' Returns if the enemy championis under kill pressure '''
     if objects.lowest_enemy_champion is None or objects.player_champion is None:
         return None
-    enemy_hp = objects.lowest_enemy_champion['health'] * objects.lowest_enemy_champion['level']
-    player_hp = (objects.player_champion['health'] - 40) * objects.player_champion['level']
-    return (enemy_hp < player_hp and
-            not objects.lowest_enemy_champion['is_turret'] and
-            objects.lowest_enemy_champion['distance'] < 300 and
-            objects.turret == [])
-
-
-def get_is_kitable(objects: Objects):
-    ''' Returns if the enemy championis under kill pressure '''
-    if objects.closest_enemy_champion is None:
-        return None
-    return (150 < objects.closest_enemy_champion['distance'] < 300 and
-            objects.turret == [])
+    return (objects.lowest_enemy_champion['level'] < objects.player_champion['level'] and
+            (objects.turret == [] or areas.is_order_side))
 
 
 def get_is_pokeable(objects: Objects):
     ''' Returns if the enemy championis under kill pressure '''
     if objects.closest_enemy_champion is None:
         return None
-    return (objects.closest_enemy_champion['distance'] < 450 and
-            objects.turret == [])
+    return objects.closest_enemy_champion['distance'] < 450 and objects.turret == []
 
 
 def get_enemy_kill_pressure(objects: Objects):
@@ -67,10 +54,9 @@ def get_game_state(objects: Objects, areas):
     enemy_champions_dps = sum([20 + c['level'] * 10 for c in objects.enemy_champion])
     player_champions_dps = 0 if objects.player_champion is None else 50 + \
         objects.player_champion['level'] * 10
-    kill_pressure = get_kill_pressure(objects)
+    kill_pressure = get_kill_pressure(objects, areas)
     enemy_kill_pressure = get_enemy_kill_pressure(objects)
-    is_kitable = get_is_kitable(objects)
     is_pokeable = get_is_pokeable(objects)
     return State(is_shielded, is_enemy_turret, is_enemy_nexus_turret, enemy_minions_dps,
                  enemy_champions_dps, player_champions_dps, potential_enemy_minions_dps,
-                 kill_pressure, enemy_kill_pressure, is_kitable, is_pokeable)
+                 kill_pressure, enemy_kill_pressure, is_pokeable)

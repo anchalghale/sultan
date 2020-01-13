@@ -28,10 +28,19 @@ ITEMS = [(163, 146), (212, 146)]
 MAX_OFFSET = 25
 
 
-def buy_item(index):
+def buy_item(item):
     ''' Buys item '''
-    mouse.move(*ITEMS[index])
-    mouse.right_click()
+    if isinstance(item, str):
+        keyboard.press_and_release('ctrl+enter')
+        time.sleep(1)
+        keyboard.write(item)
+        time.sleep(1)
+        keyboard.press_and_release('enter')
+        time.sleep(1)
+        keyboard.press_and_release('enter')
+    else:
+        mouse.move(*ITEMS[item])
+        mouse.right_click()
     time.sleep(1)
 
 
@@ -42,6 +51,7 @@ def base(coor):
     if min_distance <= 5:
         keyboard.press_and_release('b')
         time.sleep(10)
+        return
     index = distances.index(min_distance)
     coor = get_minimap_relative(BASING_COOR[index])
     mouse.move(*humanize(coor, 1))
@@ -142,7 +152,7 @@ def orb_walk(areas, coor, attack_speed):
     ''' Orb walk from a coordinate '''
     mouse.move(*coor)
     mouse.click()
-    time.sleep(.7/attack_speed)
+    time.sleep(.5/attack_speed)
     move_forward_relative(coor, areas)
     time.sleep(.2/attack_speed)
 
@@ -179,3 +189,9 @@ def level_up(level_ups, ability_points, sequence):
             print(f'leveling up {ability}')
             keyboard.press_and_release(f'ctrl+{ability}')
             return
+
+
+def use_ability(object_, key):
+    ''' Uses an ability on an object '''
+    mouse.move(*object_['center'])
+    keyboard.press_and_release(key)
