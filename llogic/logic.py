@@ -11,7 +11,7 @@ from lvision import (
     get_abilities, get_attack_speed, get_gold, get_summoner_items, get_game_state,
     get_minimap_coor, get_minimap_areas, get_objects, get_summoner_spells)
 from bot import (
-    goto_lane, evade, move_forward, level_up, use_spells, use_items, buy_item, base)
+    goto_lane, evade, move_forward, level_up, use_spells, use_items, buy_items, base, ward)
 from bot.exceptions import BotContinueException
 from constants import LEVEL_UP_SEQUENCE
 
@@ -33,12 +33,16 @@ def goto_lane_logic(utility, areas, objects, gtime):
             move_forward(utility.cooldown, areas)
 
 
-def base_logic(areas, spells, coor, gold, items):
+def base_logic(ward_position, areas, spells, coor, gold, items):
     ''' Basing logic '''
     if (gold >= 2600 and list(map(lambda i: i['name'], items)).count(None) >= 1 and
             not areas.is_base and 'teleport' in spells):
+        if ward_position is None:
+            ward()
+            return coor
         base(coor)
         raise BotContinueException
+    return ward_position
 
 
 class Logic:
@@ -48,6 +52,7 @@ class Logic:
         self.command = None
         self.last_health = None
         self.lane = random.choice(['bot', 'mid', 'top'])
+        self.ward_position = None
         self.champion = champions.ashe
 
     def get_damage_taken(self, health):
@@ -60,29 +65,6 @@ class Logic:
         output = health - self.last_health
         self.last_health = health
         return output
-
-    def buy_items(self, areas, is_shop, gold, items):
-        ''' Buys items '''
-        if gold == 500 and all(i['name'] is None for i in items):
-            buyable = 1
-        else:
-            buyable = min(list(map(lambda i: i['name'], items)).count(None), gold//2600)
-        if buyable > 0 and areas.is_platform:
-            if not is_shop:
-                keyboard.press_and_release('p')
-                time.sleep(1)
-                raise BotContinueException
-            if gold == 500:
-                buy_item(0)
-                buy_item(1)
-                raise BotContinueException
-            for _ in range(buyable):
-                buy_item('hurr')
-            raise BotContinueException
-        if is_shop:
-            keyboard.press_and_release('p')
-            time.sleep(1)
-            raise BotContinueException
 
     def tick(self, utility):
         ''' Simulates a single tick of the bot '''
@@ -107,18 +89,22 @@ class Logic:
         damage_taken = self.get_damage_taken(health)
         state = get_game_state(objects, areas)
         utility.analytics.end_timer()
-        self.buy_items(areas, is_shop, gold, items)
-        base_logic(areas, spells, coor, gold, items)
-        use_spells(objects, areas, spells, level)
+        buy_items(areas, is_shop, gold, items)
+        self.ward_position = base_logic(self.ward_position, areas, spells, coor, gold, items)
+        if use_spells(objects, areas, spells, level, self.ward_position) == 'teleport':
+            self.ward_position = None
         use_items(objects, areas, items)
         if areas.is_turret and state.is_enemy_turret and not state.is_shielded:
             evade(areas)
             time.sleep(0.3)
+        print('pressure', state.pressure)
         if state.pressure == 'orb_walk':
             self.champion.attack_champion(objects, areas, abilities, attack_speed)
-        if damage_taken is not None and damage_taken < 0 and objects.turret != []:
+        if (damage_taken is not None and damage_taken < 0 and areas.is_chaos_side
+                and areas.is_turret):
             evade(areas)
-        if objects.enemy_minion_aggro != [] and objects.enemy_champion == []:
+        if (objects.enemy_minion_aggro != [] and objects.enemy_champion == [] and
+                objects.closest_enemy_minion):
             self.champion.kite_minion(objects, areas, abilities, attack_speed)
         if state.pressure == 'evade':
             evade(areas)
@@ -127,7 +113,9 @@ class Logic:
         if state.pressure == 'kite':
             self.champion.kite_champion(objects, areas, abilities, attack_speed)
         if (state.is_enemy_turret and objects.closest_turret is not None and state.is_shielded and
-                objects.closest_turret['distance'] < 550):
+                objects.closest_turret['distance'] < 550 and
+                (objects.closest_enemy_champion is None or
+                 objects.closest_enemy_champion['distance'] > 150)):
             self.champion.attack_turret(objects, areas, abilities, attack_speed)
         if (state.is_enemy_turret and objects.closest_turret is not None and state.is_shielded and
                 objects.closest_turret['distance'] < 550):

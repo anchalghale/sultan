@@ -67,8 +67,8 @@ def identify_object(img, contour, area):
         color = img[coor_offset(coor, (1, 0), size)]
         output['name'] = get_nearest_value(
             color,
-            ((0, 255, 0), (255, 0, 0)),
-            ('player_champion', 'enemy_champion'))
+            ((0, 255, 0), (255, 0, 0), (0, 0, 255)),
+            ('player_champion', 'enemy_champion', 'ally_champion'))
         output['center'] = coor[0]+40, coor[1]+100
         hp_bar = img[coor[1]:coor[1]+1, coor[0]+1:coor[0]+106]
         output['health'] = get_hp_value(hp_bar)

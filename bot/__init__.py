@@ -29,6 +29,8 @@ ITEMS = [(163, 146), (212, 146)]
 
 MAX_OFFSET = 25
 
+CENTER = (515, 350)
+
 
 def buy_item(item):
     ''' Buys item '''
@@ -46,21 +48,57 @@ def buy_item(item):
     time.sleep(1)
 
 
+def buy_items(areas, is_shop, gold, items):
+    ''' Buys items '''
+    empty = all(i['name'] is None for i in items)
+    buyable = min(list(map(lambda i: i['name'], items)).count(None), gold//2600)
+    if (buyable > 0 or empty) and areas.is_platform:
+        if not is_shop:
+            keyboard.press_and_release('p')
+            time.sleep(1)
+            raise BotContinueException
+        if empty:
+            buy_item(0)
+            buy_item(1)
+            raise BotContinueException
+        for _ in range(buyable):
+            buy_item('hurr')
+        raise BotContinueException
+    if is_shop:
+        keyboard.press_and_release('p')
+        time.sleep(1)
+        raise BotContinueException
+
+
 def use_items(objects, areas, items):
     ''' Uses summoner spells '''
     health_potion = get_item(items, 'Health Potion')
-    if (objects.player_champion is not None and objects.player_champion['health'] < 50
+    if (objects.player_champion is not None and objects.player_champion['health'] < 30
             and health_potion is not None and not areas.is_base):
         keyboard.press_and_release(str(health_potion['key']))
 
 
-def use_spells(objects, areas, spells, level):
+def use_spells(objects, areas, spells, level, teleport_coor):
     ''' Uses summoner spells '''
+    if objects.player_champion:
+        print('player helath', objects.player_champion['health'])
     if (objects.player_champion is not None and
-            objects.player_champion['health'] < 20 and 'heal' in spells):
+            objects.player_champion['health'] < 50 and 'heal' in spells):
         keyboard.press_and_release(spells['heal']['key'])
+        return 'heal'
     if areas.is_base and areas.is_order_side and 'teleport' in spells and level > 1:
+        if teleport_coor is not None:
+            teleport(spells['teleport']['key'], coor=teleport_coor)
         teleport(spells['teleport']['key'])
+        return 'teleport'
+    return None
+
+
+def ward():
+    ''' Ward at the center of the screen '''
+    mouse.move(*CENTER)
+    keyboard.press_and_release('4')
+    time.sleep(.1)
 
 
 def base(coor):
@@ -69,21 +107,26 @@ def base(coor):
     min_distance = min(distances)
     if min_distance <= 5:
         keyboard.press_and_release('b')
+
         time.sleep(10)
-        return
+        return True
     index = distances.index(min_distance)
     coor = get_minimap_relative(BASING_COOR[index])
     mouse.move(*humanize(coor, 1))
     mouse.right_click()
     time.sleep(1)
+    return False
 
 
-def teleport(key, lane='bot'):
+def teleport(key, coor=None, lane='bot'):
     ''' Teleports to lane '''
-    mouse.move(*humanize(TELEPORT_LOCATIONS[lane]))
-    time.sleep(0.5)
+    if coor is not None:
+        mouse.move(*get_minimap_relative(coor[::-1]))
+    else:
+        mouse.move(*humanize(TELEPORT_LOCATIONS[lane]))
+    time.sleep(.1)
     keyboard.press_and_release(key)
-    time.sleep(1)
+    time.sleep(.1)
 
 
 def goto_lane(cooldown, lane='bot'):
@@ -100,7 +143,7 @@ def goto_lane(cooldown, lane='bot'):
 
 def evade(areas):
     ''' Evade '''
-    evade_relative((515, 350), areas)
+    evade_relative(CENTER, areas)
     raise BotContinueException
 
 
@@ -108,7 +151,7 @@ def move_forward(cooldown, areas):
     ''' Move forward '''
     if not cooldown.is_available('move_forward'):
         return
-    move_forward_relative((515, 350), areas)
+    move_forward_relative(CENTER, areas)
     cooldown.start_timer('move_forward')
 
 
@@ -162,9 +205,9 @@ def kite(areas, object_, attack_speed):
     mouse.move(*object_['center'])
     mouse.right_click()
     time.sleep(.5/attack_speed)
-    evade_relative(object_['center'], areas)
+    evade_relative(object_['center'], areas, 200)
     keyboard.release('`')
-    return 300//attack_speed
+    time.sleep(.3/attack_speed)
 
 
 def kite_minion(areas, object_, attack_speed):
@@ -173,7 +216,7 @@ def kite_minion(areas, object_, attack_speed):
     mouse.click()
     time.sleep(.5/attack_speed)
     evade_relative(object_['center'], areas)
-    return 300//attack_speed
+    time.sleep(.3/attack_speed)
 
 
 def attack(object_, attack_speed):
@@ -192,7 +235,7 @@ def orb_walk(areas, object_, attack_speed):
     time.sleep(.5/attack_speed)
     move_forward_relative(object_['center'], areas, size=100)
     keyboard.release('`')
-    return 300//attack_speed
+    time.sleep(.3/attack_speed)
 
 
 def poke(areas, object_, attack_speed):
@@ -201,9 +244,9 @@ def poke(areas, object_, attack_speed):
     mouse.move(*object_['center'])
     mouse.right_click()
     time.sleep(.7/attack_speed)
-    evade_relative((515, 350), areas)
+    evade_relative(CENTER, areas)
     keyboard.release('`')
-    return 300//attack_speed
+    time.sleep(.3/attack_speed)
 
 
 def goto_enemy_base(cooldown):
