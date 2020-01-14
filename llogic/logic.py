@@ -127,10 +127,12 @@ class Logic:
         if objects.enemy_minion_aggro != [] and objects.enemy_champion == []:
             kite_minion(areas, objects.closest_enemy_minion, attack_speed)
         if state.pressure == 'evade':
+            self.champion.evade_champion(objects, abilities)
             evade(utility.cooldown, areas)
         if state.pressure == 'poke':
             poke(areas, objects.closest_enemy_champion, attack_speed)
         if state.pressure == 'kite':
+            self.champion.evade_champion(objects, abilities)
             kite(areas, objects.closest_enemy_champion, attack_speed)
         if state.is_enemy_turret and state.is_shielded:
             self.champion.attack_turret(objects, abilities)
