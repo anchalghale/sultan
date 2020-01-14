@@ -16,6 +16,8 @@ MAPPING = {
     1: '''Health Potion''',
 }
 
+KEY_MAPPING = [1, 2, 3, 5, 6, 7]
+
 
 def get_summoner_items(image, models):
     '''Finds summoners items'''
@@ -25,11 +27,16 @@ def get_summoner_items(image, models):
         return img
     items = []
 
-    for rect in RECTANGLES:
+    for i, rect in enumerate(RECTANGLES):
         img = prepare(image, rect)
-        items.append(MAPPING[models['summoner_item'].predict(img)])
-
+        item = MAPPING[models['summoner_item'].predict(img)]
+        items.append({'name': item, 'key': KEY_MAPPING[i]})
     return items
+
+
+def get_item(items, name):
+    ''' Get an item from name return None if not found '''
+    return next(filter(lambda i: i['name'] == name, items), None)
 
 
 def get_is_shop(img):

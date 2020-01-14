@@ -6,7 +6,9 @@ import mouse
 import keyboard
 
 from cutils import humanize, distance
+from lvision import get_item
 
+from .exceptions import BotContinueException
 from .constants import BASING_COOR
 from .utils import get_minimap_relative
 
@@ -42,6 +44,23 @@ def buy_item(item):
         mouse.move(*ITEMS[item])
         mouse.right_click()
     time.sleep(1)
+
+
+def use_items(objects, areas, items):
+    ''' Uses summoner spells '''
+    health_potion = get_item(items, 'Health Potion')
+    if (objects.player_champion is not None and objects.player_champion['health'] < 50
+            and health_potion is not None and not areas.is_base):
+        keyboard.press_and_release(str(health_potion['key']))
+
+
+def use_spells(objects, areas, spells, level):
+    ''' Uses summoner spells '''
+    if (objects.player_champion is not None and
+            objects.player_champion['health'] < 20 and 'heal' in spells):
+        keyboard.press_and_release(spells['heal']['key'])
+    if areas.is_base and areas.is_order_side and 'teleport' in spells and level > 1:
+        teleport(spells['teleport']['key'])
 
 
 def base(coor):
@@ -85,6 +104,7 @@ def evade(cooldown, areas):
         return
     evade_relative((515, 350), areas)
     cooldown.start_timer('evade')
+    raise BotContinueException()
 
 
 def move_forward(cooldown, areas):
@@ -139,31 +159,50 @@ def move_forward_relative(coor, areas, size=150):
     mouse.right_click()
 
 
-def kite(areas, coor, attack_speed):
+def kite(areas, object_, attack_speed):
     ''' Kite from a coordinate '''
-    mouse.move(*coor)
+    keyboard.press('`')
+    mouse.move(*object_['center'])
+    mouse.right_click()
+    time.sleep(.5/attack_speed)
+    evade_relative(object_['center'], areas)
+    keyboard.release('`')
+    tick_interval = 300//attack_speed
+    raise BotContinueException(tick_interval=(tick_interval, tick_interval))
+
+
+def kite_minion(areas, object_, attack_speed):
+    ''' Kite from a coordinate '''
+    mouse.move(*object_['center'])
     mouse.click()
     time.sleep(.5/attack_speed)
-    evade_relative(coor, areas)
-    time.sleep(.2/attack_speed)
+    evade_relative(object_['center'], areas)
+    tick_interval = 300//attack_speed
+    raise BotContinueException(tick_interval=(tick_interval, tick_interval))
 
 
-def orb_walk(areas, coor, attack_speed):
+def orb_walk(areas, object_, attack_speed):
     ''' Orb walk from a coordinate '''
-    mouse.move(*coor)
-    mouse.click()
+    keyboard.press('`')
+    mouse.move(*object_['center'])
+    mouse.right_click()
     time.sleep(.5/attack_speed)
-    move_forward_relative(coor, areas)
-    time.sleep(.2/attack_speed)
+    move_forward_relative(object_['center'], areas, size=50)
+    keyboard.release('`')
+    tick_interval = 300//attack_speed
+    raise BotContinueException(tick_interval=(tick_interval, tick_interval))
 
 
-def poke(areas, coor, attack_speed):
+def poke(areas, object_, attack_speed):
     ''' Orb walk from a coordinate '''
-    mouse.move(*coor)
-    mouse.click()
+    keyboard.press('`')
+    mouse.move(*object_['center'])
+    mouse.right_click()
     time.sleep(.7/attack_speed)
     evade_relative((515, 350), areas)
-    time.sleep(.2/attack_speed)
+    keyboard.release('`')
+    tick_interval = 300//attack_speed
+    raise BotContinueException(tick_interval=(tick_interval, tick_interval))
 
 
 def goto_enemy_base(cooldown):

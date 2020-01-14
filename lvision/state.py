@@ -13,10 +13,10 @@ State = collections.namedtuple(
 
 def get_kill_pressure(objects: Objects, areas):
     ''' Returns if the enemy championis under kill pressure '''
-    if objects.lowest_enemy_champion is None or objects.player_champion is None:
-        return None
-    return (objects.lowest_enemy_champion['level'] < objects.player_champion['level'] and
-            (objects.turret == [] or areas.is_order_side))
+    if objects.player_champion is None:
+        return False
+    level_adv = [e['level'] < objects.player_champion['level'] for e in objects.enemy_champion]
+    return level_adv and (objects.turret == [] or areas.is_order_side)
 
 
 def get_is_pokeable(objects: Objects):

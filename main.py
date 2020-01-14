@@ -15,11 +15,9 @@ from window import find_rect
 from llogic import Logic
 from lutils import wait_league_window
 from bot.exceptions import BotContinueException, BotExitException
-from constants import ANALYTICS_IGNORE, COOLDOWNS
+from constants import ANALYTICS_IGNORE, COOLDOWNS, TICK_INTERVAL
 
 Utility = collections.namedtuple('Utility', 'logger screen resources analytics cooldown')
-
-TICK_INTERVAL = 300, 600  # ms
 
 
 def main():
@@ -53,8 +51,8 @@ def main():
                 continue
             logic.tick(utility)
             time.sleep(random.randint(*TICK_INTERVAL)/1000)
-        except BotContinueException:
-            time.sleep(random.randint(*TICK_INTERVAL)/1000)
+        except BotContinueException as exp:
+            time.sleep(random.randint(*exp.tick_interval)/1000)
         except BotExitException:
             screen.d3d.stop()
             break

@@ -13,7 +13,7 @@ from .stats import get_attack_speed
 from .gold import get_gold
 from .sums import get_summoner_spells
 from .level import get_summoner_level
-from .items import get_summoner_items, get_is_shop
+from .items import get_summoner_items, get_is_shop, get_item
 from .time import get_game_time
 
 from .knearest import KNearest
