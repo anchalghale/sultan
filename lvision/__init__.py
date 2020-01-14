@@ -125,6 +125,7 @@ def identify_turret_aggro(contour, area):
 def get_dependent_objects(objects):
     ''' Finds the objects from exisiting objects '''
     objects['shield_minion'] = lfilter(lambda o: o['is_turret'], objects['ally_minion'])
+    objects['enemy_minion_aggro'] = lfilter(lambda o: o['aggro'], objects['enemy_minion'])
     objects['player_champion'] = (None if objects['player_champion'] ==
                                   [] else objects['player_champion'][0])
 

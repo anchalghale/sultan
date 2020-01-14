@@ -1,19 +1,18 @@
 ''' Logic module of the bot '''
 import time
+import random
 
 import keyboard
-import mouse
 
 import champions
 
-from lvision.state import get_game_state
 from lvision import (
     is_camera_locked, get_level_ups, get_ability_points, get_is_shop, get_game_time,
-    get_abilities, get_attack_speed, get_gold, get_summoner_items,
+    get_abilities, get_attack_speed, get_gold, get_summoner_items, get_game_state,
     get_minimap_coor, get_minimap_areas, get_objects, get_summoner_spells)
 from bot import (
     goto_lane, evade, move_forward, level_up, kite_minion, use_spells, use_items,
-    poke, kite, orb_walk, buy_item, base)
+    poke, kite, orb_walk, buy_item, base, attack)
 from bot.exceptions import BotContinueException
 from constants import LEVEL_UP_SEQUENCE
 
@@ -48,7 +47,8 @@ class Logic:
     def __init__(self):
         self.command = None
         self.last_health = None
-        self.champion = champions.Caitlyn
+        self.lane = random.choice(['bot', 'mid', 'top'])
+        self.champion = champions.MissFortune
 
     def get_damage_taken(self, health):
         ''' Calcuates the damage taken in last tick '''
@@ -113,36 +113,29 @@ class Logic:
         base_logic(areas, coor, gold, items)
         use_spells(objects, areas, spells, level)
         use_items(objects, areas, items)
+        print(state.pressure)
 
         if areas.is_turret and state.is_enemy_turret and not state.is_shielded:
             evade(utility.cooldown, areas)
-        if len(objects.turret_aggro) > 0:
+        if objects.turret_aggro != []:
             evade(utility.cooldown, areas)
-        if state.kill_pressure:
+        if state.pressure == 'orb_walk':
             self.champion.attack_champion(objects, abilities)
-            orb_walk(areas, objects.lowest_enemy_champion, attack_speed)
+            orb_walk(areas, objects.closest_enemy_champion, attack_speed)
         if damage_taken is not None and damage_taken < 0 and objects.turret != []:
             evade(utility.cooldown, areas)
-        if state.enemy_minions_dps >= 10 and len(objects.enemy_champion) == 0:
-            if objects.closest_enemy_minion:
-                kite_minion(areas, objects.closest_enemy_minion, attack_speed)
-            else:
-                evade(utility.cooldown, areas)
-        if state.enemy_minions_dps + state.enemy_champions_dps > state.player_champions_dps:
+        if objects.enemy_minion_aggro != [] and objects.enemy_champion == []:
+            kite_minion(areas, objects.closest_enemy_minion, attack_speed)
+        if state.pressure == 'evade':
             evade(utility.cooldown, areas)
-        if objects.enemy_champion != [] and objects.closest_enemy_champion['distance'] < 300:
-            if state.enemy_kill_pressure:
-                kite(areas, objects.closest_enemy_champion, attack_speed)
-            if state.is_pokeable:
-                poke(areas, objects.closest_enemy_champion, attack_speed)
+        if state.pressure == 'poke':
+            poke(areas, objects.closest_enemy_champion, attack_speed)
+        if state.pressure == 'kite':
+            kite(areas, objects.closest_enemy_champion, attack_speed)
         if state.is_enemy_turret and state.is_shielded:
             self.champion.attack_turret(objects, abilities)
-            mouse.move(*objects.turret[0]['center'])
-            mouse.click()
-            raise BotContinueException
+            attack(objects.turret[0], attack_speed)
         if objects.closest_enemy_minion and areas.is_chaos_side:
             self.champion.attack_minion(objects, abilities)
-            mouse.move(*objects.closest_enemy_minion['center'])
-            mouse.click()
-            raise BotContinueException
+            attack(objects.closest_enemy_minion, attack_speed)
         goto_lane_logic(utility, areas, objects, gtime)

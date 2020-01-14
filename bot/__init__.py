@@ -181,13 +181,21 @@ def kite_minion(areas, object_, attack_speed):
     raise BotContinueException(tick_interval=(tick_interval, tick_interval))
 
 
+def attack(object_, attack_speed):
+    ''' Attack an target with attack move click '''
+    mouse.move(*object_['center'])
+    mouse.click()
+    time.sleep(.5/attack_speed)
+    raise BotContinueException
+
+
 def orb_walk(areas, object_, attack_speed):
     ''' Orb walk from a coordinate '''
     keyboard.press('`')
     mouse.move(*object_['center'])
     mouse.right_click()
     time.sleep(.5/attack_speed)
-    move_forward_relative(object_['center'], areas, size=50)
+    move_forward_relative(object_['center'], areas, size=100)
     keyboard.release('`')
     tick_interval = 300//attack_speed
     raise BotContinueException(tick_interval=(tick_interval, tick_interval))
