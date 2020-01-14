@@ -2,7 +2,7 @@
 
 TICK_INTERVAL = 300, 600  # ms
 
-LEVEL_UP_SEQUENCE = ['r', 'w', 'q', 'e']
+LEVEL_UP_SEQUENCE = ['r', 'q', 'w', 'e']
 
 COOLDOWNS = {'goto_lane': 3, 'goto_enemy_base': 3, 'evade': 0.2, 'move_forward': 0.5}
 

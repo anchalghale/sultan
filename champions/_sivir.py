@@ -10,14 +10,19 @@ def orb_walk_champion_cb(objects: Objects, areas, abilities, attack_speed):
     ''' Attacks a enemy champion '''
     orb_walk(areas, objects.closest_enemy_champion, attack_speed)
     use_ability(objects.closest_enemy_champion, abilities, 'q')
-    if objects.closest_enemy_champion['distance'] >= 450:
-        use_ability(objects.closest_enemy_champion, abilities, 'r')
+    use_ability(objects.closest_enemy_champion, abilities, 'w')
+    use_ability(objects.closest_enemy_champion, abilities, 'e')
+    use_ability(objects.closest_enemy_champion, abilities, 'r')
     raise BotContinueException(tick_interval=(0, 0))
 
 
 def kite_champion_cb(objects: Objects, areas, abilities, attack_speed):
     ''' Evades a enemy champion '''
     kite(areas, objects.closest_enemy_champion, attack_speed)
+    use_ability(objects.closest_enemy_champion, abilities, 'q')
+    use_ability(objects.closest_enemy_champion, abilities, 'w')
+    use_ability(objects.closest_enemy_champion, abilities, 'e')
+    use_ability(objects.closest_enemy_champion, abilities, 'r')
     raise BotContinueException(tick_interval=(0, 0))
 
 
@@ -25,23 +30,24 @@ def poke_champion_cb(objects: Objects, areas, abilities, attack_speed):
     ''' Evades a enemy champion '''
     poke(areas, objects.closest_enemy_champion, attack_speed)
     use_ability(objects.closest_enemy_champion, abilities, 'q')
-    use_ability(objects.closest_enemy_champion, abilities, 'w')
     raise BotContinueException(tick_interval=(0, 0))
 
 
 def attack_turret_cb(objects: Objects, areas, abilities, attack_speed):
     ''' Attacks a enemy turret '''
+    use_ability(objects.closest_turret, abilities, 'w')
     attack(objects.closest_turret, attack_speed)
 
 
 def attack_structure_cb(objects: Objects, areas, abilities, attack_speed):
     ''' Attacks a enemy turret '''
+    use_ability(objects.structure[0], abilities, 'w')
     attack(objects.structure[0], attack_speed)
 
 
 def attack_minion_cb(objects: Objects, areas, abilities, attack_speed):
     ''' Attacks a enemy minion '''
-    use_ability(objects.closest_enemy_minion, abilities, 'q')
+    use_ability(objects.closest_enemy_minion, abilities, 'w')
     attack(objects.closest_enemy_minion, attack_speed)
 
 

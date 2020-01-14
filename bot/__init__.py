@@ -89,7 +89,8 @@ def use_spells(objects, areas, spells, level, teleport_coor):
     if areas.is_base and areas.is_order_side and 'teleport' in spells and level > 1:
         if teleport_coor is not None:
             teleport(spells['teleport']['key'], coor=teleport_coor)
-        teleport(spells['teleport']['key'])
+        else:
+            teleport(spells['teleport']['key'])
         return 'teleport'
     return None
 
@@ -141,9 +142,10 @@ def goto_lane(cooldown, lane='bot'):
     cooldown.start_timer('goto_lane')
 
 
-def evade(areas):
+def evade(areas, sleep=0, size=150):
     ''' Evade '''
-    evade_relative(CENTER, areas)
+    evade_relative(CENTER, areas, size=size)
+    time.sleep(sleep)
     raise BotContinueException
 
 
@@ -205,7 +207,7 @@ def kite(areas, object_, attack_speed):
     mouse.move(*object_['center'])
     mouse.right_click()
     time.sleep(.5/attack_speed)
-    evade_relative(object_['center'], areas, 200)
+    evade_relative(object_['center'], areas)
     keyboard.release('`')
     time.sleep(.3/attack_speed)
 
@@ -235,6 +237,15 @@ def orb_walk(areas, object_, attack_speed):
     time.sleep(.5/attack_speed)
     move_forward_relative(object_['center'], areas, size=100)
     keyboard.release('`')
+    time.sleep(.3/attack_speed)
+
+
+def orb_walk_minion(areas, object_, attack_speed):
+    ''' Orb walk from a coordinate '''
+    mouse.move(*object_['center'])
+    mouse.click()
+    time.sleep(.5/attack_speed)
+    move_forward_relative(object_['center'], areas, size=100)
     time.sleep(.3/attack_speed)
 
 
