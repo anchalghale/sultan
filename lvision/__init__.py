@@ -129,6 +129,15 @@ def get_dependent_objects(objects):
     objects['player_champion'] = (None if objects['player_champion'] ==
                                   [] else objects['player_champion'][0])
 
+    if objects['turret'] != [] and objects['player_champion'] is not None:
+        for turret in objects['turret']:
+            turret['distance'] = distance(
+                turret['center'], objects['player_champion']['center'])
+        objects['turret'].sort(key=lambda o: o['distance'])
+        objects['closest_turret'] = objects['turret'][0]
+    else:
+        objects['closest_turret'] = None
+
     if objects['enemy_minion'] != [] and objects['player_champion'] is not None:
         for minion in objects['enemy_minion']:
             minion['distance'] = distance(

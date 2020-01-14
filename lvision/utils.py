@@ -7,7 +7,7 @@ Objects = collections.namedtuple(
     'Objects',
     'player_champion enemy_champion lowest_enemy_champion closest_enemy_champion shield_minion '
     'structure monster ally_minion enemy_minion enemy_minion_aggro closest_enemy_minion '
-    'small_monster turret_aggro turret plant ')
+    'small_monster turret_aggro turret closest_turret plant ')
 
 
 def lfilter(function, iterable):

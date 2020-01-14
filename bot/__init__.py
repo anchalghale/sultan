@@ -98,13 +98,10 @@ def goto_lane(cooldown, lane='bot'):
     cooldown.start_timer('goto_lane')
 
 
-def evade(cooldown, areas):
+def evade(areas):
     ''' Evade '''
-    if not cooldown.is_available('evade'):
-        return
     evade_relative((515, 350), areas)
-    cooldown.start_timer('evade')
-    raise BotContinueException()
+    raise BotContinueException
 
 
 def move_forward(cooldown, areas):
@@ -167,8 +164,7 @@ def kite(areas, object_, attack_speed):
     time.sleep(.5/attack_speed)
     evade_relative(object_['center'], areas)
     keyboard.release('`')
-    tick_interval = 300//attack_speed
-    raise BotContinueException(tick_interval=(tick_interval, tick_interval))
+    return 300//attack_speed
 
 
 def kite_minion(areas, object_, attack_speed):
@@ -177,8 +173,7 @@ def kite_minion(areas, object_, attack_speed):
     mouse.click()
     time.sleep(.5/attack_speed)
     evade_relative(object_['center'], areas)
-    tick_interval = 300//attack_speed
-    raise BotContinueException(tick_interval=(tick_interval, tick_interval))
+    return 300//attack_speed
 
 
 def attack(object_, attack_speed):
@@ -197,8 +192,7 @@ def orb_walk(areas, object_, attack_speed):
     time.sleep(.5/attack_speed)
     move_forward_relative(object_['center'], areas, size=100)
     keyboard.release('`')
-    tick_interval = 300//attack_speed
-    raise BotContinueException(tick_interval=(tick_interval, tick_interval))
+    return 300//attack_speed
 
 
 def poke(areas, object_, attack_speed):
@@ -209,8 +203,7 @@ def poke(areas, object_, attack_speed):
     time.sleep(.7/attack_speed)
     evade_relative((515, 350), areas)
     keyboard.release('`')
-    tick_interval = 300//attack_speed
-    raise BotContinueException(tick_interval=(tick_interval, tick_interval))
+    return 300//attack_speed
 
 
 def goto_enemy_base(cooldown):
@@ -238,7 +231,14 @@ def level_up(level_ups, ability_points, sequence):
             return
 
 
-def use_ability(object_, key):
+def use_ability(object_, abilities, key):
     ''' Uses an ability on an object '''
-    mouse.move(*object_['center'])
-    keyboard.press_and_release(key)
+    if getattr(abilities, key):
+        mouse.move(*object_['center'])
+        keyboard.press_and_release(key)
+
+
+def use_abilities(object_, abilities, keys):
+    ''' Uses abilities on an object '''
+    for key in keys:
+        use_ability(object_, abilities, key)

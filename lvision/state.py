@@ -5,7 +5,7 @@ from .utils import Objects
 
 
 State = collections.namedtuple(
-    'State', 'is_shielded is_enemy_turret is_enemy_nexus_turret pressure')
+    'State', 'is_shielded is_enemy_turret is_enemy_structure pressure')
 
 
 def get_pressure(objects: Objects, areas):
@@ -35,7 +35,7 @@ def get_game_state(objects: Objects, areas):
     is_shielded = (len(shield_minions) > 1 or
                    (len(shield_minions) == 1 and shield_minions[0]['health'] >= 50))
     is_enemy_turret = turrets != [] and areas.is_chaos_side
-    is_enemy_nexus_turret = len(turrets) == 2 and areas.is_chaos_side
+    is_enemy_structure = objects.structure != [] and areas.is_chaos_side
     pressure = get_pressure(objects, areas)
 
-    return State(is_shielded, is_enemy_turret, is_enemy_nexus_turret, pressure)
+    return State(is_shielded, is_enemy_turret, is_enemy_structure, pressure)

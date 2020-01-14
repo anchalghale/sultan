@@ -1,5 +1,5 @@
 ''' Module that contains champion logic '''
 
-from .ashe import ASHE as Ashe
-from .caitlyn import CAITLYN as Caitlyn
-from .miss_fortune import MISS_FORTUNE as MissFortune
+from ._ashe import CHAMPION as ashe
+from ._caitlyn import CHAMPION as caitlyn
+from ._miss_fortune import CHAMPION as miss_fortune
