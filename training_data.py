@@ -47,12 +47,14 @@ def tick(label_input, change_img, img):
     ''' Simulates a single tick of the bot '''
     # export_data(label_input, change_img, img, (534, 707, 19, 16))  # sums 1
     # export_data(label_input, change_img, img, (558, 707, 19, 16))  # sums 2
-    export_data(label_input, change_img, img, (596, 709, 12, 12))  # item 1
-    export_data(label_input, change_img, img, (619, 709, 12, 12))  # item 1
-    export_data(label_input, change_img, img, (642, 709, 12, 12))  # item 1
-    export_data(label_input, change_img, img, (596, 731, 12, 12))  # item 1
-    export_data(label_input, change_img, img, (619, 731, 12, 12))  # item 1
-    export_data(label_input, change_img, img, (642, 731, 12, 12))  # item 1
+    # export_data(label_input, change_img, img, (596, 709, 12, 12))  # item 1
+    # export_data(label_input, change_img, img, (619, 709, 12, 12))  # item 2
+    # export_data(label_input, change_img, img, (642, 709, 12, 12))  # item 3
+    # export_data(label_input, change_img, img, (596, 731, 12, 12))  # item 4
+    # export_data(label_input, change_img, img, (619, 731, 12, 12))  # item 5
+    # export_data(label_input, change_img, img, (642, 731, 12, 12))  # item 6
+
+    export_data(label_input, change_img, img, (330, 720, 20, 20))    # champion
 
     # export_data(label_input, change_img, img, (664, 709, 12, 12))  # trinklet 1
 

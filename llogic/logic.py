@@ -12,7 +12,6 @@ from lvision import (
 from bot import (
     goto_lane, evade, move_forward, level_up, use_spells, use_items, buy_items, base, ward)
 from bot.exceptions import BotContinueException
-from constants import LEVEL_UP_SEQUENCE
 
 
 def goto_lane_logic(utility, areas, objects, gtime):
@@ -72,7 +71,7 @@ class Logic:
         if not is_camera_locked(img):
             keyboard.press_and_release('y')
         level_ups = get_level_ups(img)
-        level_up(level_ups, get_ability_points(img), LEVEL_UP_SEQUENCE)
+        level_up(level_ups, get_ability_points(img), self.champion.level_up_sequence)
         coor = get_minimap_coor(utility.analytics, img)
         areas = get_minimap_areas(utility.analytics, utility.resources.images, coor)
         abilities = get_abilities(img)
@@ -93,13 +92,12 @@ class Logic:
         if use_spells(objects, areas, spells, level, self.ward_position) == 'teleport':
             self.ward_position = None
         use_items(objects, areas, items)
-        if areas.is_turret and state.is_enemy_turret and not state.is_shielded:
+        if ((areas.is_turret and state.is_enemy_turret and not state.is_shielded) or
+                objects.turret_aggro != []):
             evade(areas, sleep=0.3, size=250)
-        print('pressure', state.pressure)
         if state.pressure == 'orb_walk':
             self.champion.orb_walk_champion(objects, areas, abilities, attack_speed)
-        if (damage_taken is not None and damage_taken < 0 and areas.is_chaos_side
-                and areas.is_turret):
+        if damage_taken is not None and damage_taken < 0 and objects.turret != []:
             evade(areas)
         if (objects.enemy_minion_aggro != [] and objects.enemy_champion == [] and
                 objects.closest_enemy_minion):
@@ -120,7 +118,7 @@ class Logic:
             self.champion.attack_turret(objects, areas, abilities, attack_speed)
         if state.is_enemy_structure:
             self.champion.attack_structure(objects, areas, abilities, attack_speed)
-        if objects.closest_enemy_minion and objects.turret == []:
+        if objects.closest_enemy_minion and objects.turret == [] and level >= 6:
             self.champion.orb_walk_minion(objects, areas, abilities, attack_speed)
         if objects.closest_enemy_minion:
             self.champion.attack_minion(objects, areas, abilities, attack_speed)

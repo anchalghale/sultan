@@ -10,7 +10,6 @@ def orb_walk_champion_cb(objects: Objects, areas, abilities, attack_speed):
     ''' Attacks a enemy champion '''
     orb_walk(areas, objects.closest_enemy_champion, attack_speed)
     use_ability(objects.closest_enemy_champion, abilities, 'q')
-    use_ability(objects.closest_enemy_champion, abilities, 'w')
     use_ability(objects.closest_enemy_champion, abilities, 'e')
     raise BotContinueException(tick_interval=(0, 0))
 
@@ -64,4 +63,5 @@ def orb_walk_minion_cb(objects: Objects, areas, abilities, attack_speed):
 
 
 CHAMPION = Champion(orb_walk_champion_cb, poke_champion_cb, kite_champion_cb, attack_turret_cb,
-                    attack_minion_cb, kite_minion_cb, orb_walk_minion_cb, attack_structure_cb)
+                    attack_minion_cb, kite_minion_cb, orb_walk_minion_cb, attack_structure_cb,
+                    ['r', 'e', 'q', 'w'])

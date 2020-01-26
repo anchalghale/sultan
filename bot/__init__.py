@@ -245,7 +245,9 @@ def orb_walk_minion(areas, object_, attack_speed):
     mouse.move(*object_['center'])
     mouse.click()
     time.sleep(.5/attack_speed)
+    keyboard.press('`')
     move_forward_relative(object_['center'], areas, size=100)
+    keyboard.release('`')
     time.sleep(.3/attack_speed)
 
 

@@ -17,7 +17,7 @@ def get_pressure(objects: Objects, areas):
     enemy_level = len(objects.enemy_minion) * 2 / level + \
         sum(map(lambda o: o['level'], objects.enemy_champion))
     level_adv = enemy_level < level
-    enemy_turret = areas.is_chaos_side and areas.is_turret
+    enemy_turret = areas.is_chaos_side and objects.turret != []
     if level_adv and (objects.turret == [] or areas.is_order_side):
         return 'orb_walk'
     if enemy_turret and distance < 150:

@@ -60,4 +60,5 @@ def orb_walk_minion_cb(objects: Objects, areas, abilities, attack_speed):
 
 
 CHAMPION = Champion(orb_walk_champion_cb, poke_champion_cb, kite_champion_cb, attack_turret_cb,
-                    attack_minion_cb, kite_minion_cb, orb_walk_minion_cb, attack_structure_cb)
+                    attack_minion_cb, kite_minion_cb, orb_walk_minion_cb, attack_structure_cb,
+                    ['r', 'w', 'q', 'e'])
