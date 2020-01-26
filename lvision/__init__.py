@@ -15,6 +15,7 @@ from .sums import get_summoner_spells
 from .level import get_summoner_level
 from .items import get_summoner_items, get_is_shop, get_item
 from .time import get_game_time
+from .champion import get_champion
 
 from .knearest import KNearest
 from .constants import MINIMAP_AREAS, CAMERA_LOCK, LEVEL_Q, LEVEL_W, LEVEL_E, LEVEL_R
