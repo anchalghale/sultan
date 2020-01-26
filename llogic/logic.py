@@ -1,4 +1,5 @@
 ''' Logic module of the bot '''
+import time
 import random
 
 import keyboard
@@ -8,7 +9,7 @@ import champions
 from lvision import (
     is_camera_locked, get_level_ups, get_ability_points, get_is_shop, get_game_time,
     get_abilities, get_attack_speed, get_gold, get_summoner_items, get_game_state,
-    get_minimap_coor, get_minimap_areas, get_objects, get_summoner_spells)
+    get_minimap_coor, get_minimap_areas, get_objects, get_summoner_spells, get_is_loading_screen)
 from bot import (
     goto_lane, evade, move_forward, level_up, use_spells, use_items, buy_items, base, ward)
 from bot.exceptions import BotContinueException
@@ -68,6 +69,9 @@ class Logic:
         ''' Simulates a single tick of the bot '''
         utility.analytics.start_timer()
         img = utility.screen.d3d.get_latest_frame()
+        if get_is_loading_screen(img):
+            time.sleep(10)
+            return
         if not is_camera_locked(img):
             keyboard.press_and_release('y')
         level_ups = get_level_ups(img)

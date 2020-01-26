@@ -11,7 +11,8 @@ from logger import CliLogger
 from screen import Screen
 from resources import Resources
 from cooldown import Cooldown
-from window import find_rect
+from window import find_rect, CantForgroundWindowError
+from lvision import NoCharacterInMinimap
 from llogic import Logic
 from lutils import wait_league_window
 from bot.exceptions import BotContinueException, BotExitException
@@ -51,7 +52,7 @@ def main():
                 continue
             logic.tick(utility)
             time.sleep(random.randint(*TICK_INTERVAL)/1000)
-        except BotContinueException as exp:
+        except (BotContinueException, CantForgroundWindowError, NoCharacterInMinimap) as exp:
             time.sleep(random.randint(*exp.tick_interval)/1000)
         except BotExitException:
             screen.d3d.stop()
