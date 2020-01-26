@@ -17,7 +17,7 @@ from lvision.utils import draw_objects
 from lvision import (is_camera_locked, get_level_ups, get_minimap_coor, get_game_state,
                      get_objects, get_abilities, get_ability_points, get_is_shop,
                      get_minimap_areas, get_gold, get_summoner_spells,
-                     get_attack_speed, get_summoner_items, get_game_time)
+                     get_attack_speed, get_summoner_items, get_game_time, get_champion)
 
 
 from constants import ANALYTICS_IGNORE
@@ -42,6 +42,7 @@ def tick(logger, analytics, resources, img):
     logger.log(f'Time: {get_game_time(img, resources.models)} minute(s)')
     logger.log(f'Minimap coor: {coor}')
     logger.log(f'Is shop: {get_is_shop(img)}')
+    logger.log(f'Champion: {get_champion(img, resources.models)}')
     analytics.end_timer()
     return objs
 
