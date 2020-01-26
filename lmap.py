@@ -26,7 +26,7 @@ def main():
     while True:
         if keyboard.is_pressed('x'):
             break
-        img = screen.screenshot(analytics, find_rect(hwnd))
+        img = screen.screenshot(find_rect(hwnd))
         time.sleep(1)
 
 

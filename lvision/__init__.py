@@ -8,7 +8,6 @@ from cutils import (coor_offset, crop, find_center, get_color_diff, distance,
 from .abilities import get_level_ups, get_abilities, get_ability_points
 from .minimap import get_minimap_areas, get_minimap_coor
 from .state import get_game_state
-from .filter import filter_objects
 from .stats import get_attack_speed
 from .gold import get_gold
 from .sums import get_summoner_spells
@@ -16,6 +15,7 @@ from .level import get_summoner_level
 from .items import get_summoner_items, get_is_shop, get_item
 from .time import get_game_time
 from .champion import get_champion
+from .loading import get_is_loading_screen
 
 from .knearest import KNearest
 from .constants import MINIMAP_AREAS, CAMERA_LOCK, LEVEL_Q, LEVEL_W, LEVEL_E, LEVEL_R

@@ -15,9 +15,9 @@ from window import find_rect
 from lutils import wait_league_window
 from lvision.utils import draw_objects
 from lvision import (is_camera_locked, get_level_ups, get_minimap_coor, get_game_state,
-                     get_objects, get_abilities, get_ability_points, get_is_shop,
-                     get_minimap_areas, get_gold, get_summoner_spells,
-                     get_attack_speed, get_summoner_items, get_game_time, get_champion)
+                     get_objects, get_abilities, get_ability_points, get_is_shop, get_champion,
+                     get_minimap_areas, get_gold, get_summoner_spells, get_is_loading_screen,
+                     get_attack_speed, get_summoner_items, get_game_time, NoCharacterInMinimap)
 
 
 from constants import ANALYTICS_IGNORE
@@ -26,6 +26,7 @@ from constants import ANALYTICS_IGNORE
 def tick(logger, analytics, resources, img):
     ''' Simulates a single tick of the bot '''
     analytics.start_timer()
+    logger.log(f'Loading screen: {get_is_loading_screen(img)}')
     coor = get_minimap_coor(analytics, img)
     areas = get_minimap_areas(analytics, resources.images, coor)
     objs = get_objects(analytics, img, (190, 0, 190), (255, 20, 255))
@@ -74,10 +75,13 @@ def main():
             img = screen.d3d.get_latest_frame()
             if img is None:
                 continue
-            img_bgr = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-            objs = tick(logger, analytics, resources, img)
-            draw_objects(img_bgr, objs, wait=False, title='League Vision - Interactive')
-            logger.log('Press and hold x to exit bot.')
+            try:
+                img_bgr = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+                objs = tick(logger, analytics, resources, img)
+                draw_objects(img_bgr, objs, wait=False, title='League Vision - Interactive')
+                logger.log('Press and hold x to exit bot.')
+            except NoCharacterInMinimap:
+                pass
             logger.log('-'*50)
             time.sleep(1)
         return
@@ -90,8 +94,11 @@ def main():
     for file in files:
         img_bgr = cv2.imread(file)
         img = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
-        objs = tick(logger, analytics, resources, img)
-        logger.log('Press x to exit.')
+        try:
+            objs = tick(logger, analytics, resources, img)
+            logger.log('Press x to exit.')
+        except NoCharacterInMinimap:
+            pass
         logger.log('-'*50)
         if draw_objects(img_bgr, objs, title=f'League Vision - {file}') == 120:
             break

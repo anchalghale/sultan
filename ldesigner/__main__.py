@@ -45,7 +45,7 @@ class Application:
             try:
                 hwnds = find_window_hwnds(r'League of Legends \(TM\) Client')
                 rect = find_rect(hwnds[0])
-                img = self.screen.screenshot(self.analytics, rect)
+                img = self.screen.screenshot(rect)
                 self.coor = get_minimap_coor(self.analytics, img)
                 self.builder.set_entry('coor', self.coor)
                 self.builder.set_entry('value', self.tiles[self.coor])
