@@ -4,15 +4,17 @@ import random
 
 import keyboard
 
-import champions
-
+from champions import get_champion_class
 from lvision import (
     is_camera_locked, get_level_ups, get_ability_points, get_is_shop, get_game_time,
     get_abilities, get_attack_speed, get_gold, get_summoner_items, get_game_state,
-    get_minimap_coor, get_minimap_areas, get_objects, get_summoner_spells, get_is_loading_screen)
+    get_minimap_coor, get_minimap_areas, get_objects, get_summoner_spells, get_is_loading_screen,
+    get_champion)
 from bot import (
     goto_lane, evade, move_forward, level_up, use_spells, use_items, buy_items, base, ward)
 from bot.exceptions import BotContinueException
+
+from utils import Utility
 
 
 def goto_lane_logic(utility, areas, objects, gtime):
@@ -47,12 +49,24 @@ def base_logic(ward_position, areas, spells, coor, gold, items):
 class Logic:
     ''' Logic class of the bot '''
 
-    def __init__(self):
+    def __init__(self, utility: Utility):
+        self.utility = utility
+
+        self.command = None
+        self.last_health = None
+        self.lane = None
+        self.ward_position = None
+        self.champion = None
+
+        self.reset()
+
+    def reset(self):
+        '''Resets the logic variables'''
         self.command = None
         self.last_health = None
         self.lane = random.choice(['bot', 'mid', 'top'])
         self.ward_position = None
-        self.champion = champions.ashe
+        self.champion = None
 
     def get_damage_taken(self, health):
         ''' Calcuates the damage taken in last tick '''
@@ -65,32 +79,40 @@ class Logic:
         self.last_health = health
         return output
 
-    def tick(self, utility):
+    def set_champion(self, img):
+        '''Sets the champion if not set'''
+        if self.champion is None:
+            champion = get_champion(img, self.utility.resources.models)
+            self.champion = get_champion_class(champion)
+            self.utility.logger.log(f'Champion found: {champion}')
+
+    def tick(self):
         ''' Simulates a single tick of the bot '''
-        utility.analytics.start_timer()
-        img = utility.screen.d3d.get_latest_frame()
+        self.utility.analytics.start_timer()
+        img = self.utility.screen.d3d.get_latest_frame()
         if get_is_loading_screen(img):
             time.sleep(10)
             return
         if not is_camera_locked(img):
             keyboard.press_and_release('y')
+        self.set_champion(img)
         level_ups = get_level_ups(img)
         level_up(level_ups, get_ability_points(img), self.champion.level_up_sequence)
-        coor = get_minimap_coor(utility.analytics, img)
-        areas = get_minimap_areas(utility.analytics, utility.resources.images, coor)
+        coor = get_minimap_coor(self.utility.analytics, img)
+        areas = get_minimap_areas(self.utility.analytics, self.utility.resources.images, coor)
         abilities = get_abilities(img)
-        attack_speed = get_attack_speed(img, utility.resources.models)
-        gold = get_gold(img, utility.resources.models)
-        items = get_summoner_items(img, utility.resources.models)
+        attack_speed = get_attack_speed(img, self.utility.resources.models)
+        gold = get_gold(img, self.utility.resources.models)
+        items = get_summoner_items(img, self.utility.resources.models)
         is_shop = get_is_shop(img)
-        gtime = get_game_time(img, utility.resources.models)
-        spells = get_summoner_spells(img, utility.resources.models)
-        objects = get_objects(utility.analytics, img, (190, 0, 190), (255, 20, 255))
+        gtime = get_game_time(img, self.utility.resources.models)
+        spells = get_summoner_spells(img, self.utility.resources.models)
+        objects = get_objects(self.utility.analytics, img, (190, 0, 190), (255, 20, 255))
         level = -1 if objects.player_champion is None else objects.player_champion['level']
         health = None if objects.player_champion is None else objects.player_champion['health']
         damage_taken = self.get_damage_taken(health)
         state = get_game_state(objects, areas)
-        utility.analytics.end_timer()
+        self.utility.analytics.end_timer()
         buy_items(areas, is_shop, gold, items)
         self.ward_position = base_logic(self.ward_position, areas, spells, coor, gold, items)
         if use_spells(objects, areas, spells, level, self.ward_position) == 'teleport':
@@ -126,4 +148,4 @@ class Logic:
             self.champion.orb_walk_minion(objects, areas, abilities, attack_speed)
         if objects.closest_enemy_minion:
             self.champion.attack_minion(objects, areas, abilities, attack_speed)
-        goto_lane_logic(utility, areas, objects, gtime)
+        goto_lane_logic(self.utility, areas, objects, gtime)

@@ -1,6 +1,5 @@
 ''' Main module of the script '''
 import time
-import collections
 import traceback
 import random
 
@@ -18,14 +17,13 @@ from lutils import wait_league_window
 from bot.exceptions import BotContinueException, BotExitException
 from constants import ANALYTICS_IGNORE, COOLDOWNS, TICK_INTERVAL
 
-Utility = collections.namedtuple('Utility', 'logger screen resources analytics cooldown')
+from utils import Utility
 
 
 def main():
     '''Main function of the script'''
     paused = False
 
-    logic = Logic()
     logger = CliLogger()
     screen = Screen()
     resources = Resources()
@@ -34,7 +32,11 @@ def main():
     analytics.ignore = ANALYTICS_IGNORE
     resources.load(analytics)
     utility = Utility(logger, screen, resources, analytics, cooldown)
-    handle = wait_league_window(logger, (0, 0, 1024, 768))
+    logic = Logic(utility)
+    try:
+        handle = wait_league_window(logger, (0, 0, 1024, 768))
+    except CantForgroundWindowError:
+        pass
     logger.log('Press and hold x to exit bot.')
     screen.d3d.capture(target_fps=10, region=find_rect(handle))
     while True:
@@ -50,10 +52,12 @@ def main():
                 paused = True
                 logger.log('Bot paused. Press ctrl+u to unpause. Press x to exit.')
                 continue
-            logic.tick(utility)
+            logic.tick()
             time.sleep(random.randint(*TICK_INTERVAL)/1000)
-        except (BotContinueException, CantForgroundWindowError, NoCharacterInMinimap) as exp:
+        except BotContinueException as exp:
             time.sleep(random.randint(*exp.tick_interval)/1000)
+        except NoCharacterInMinimap:
+            time.sleep(1)
         except BotExitException:
             screen.d3d.stop()
             break

@@ -4,12 +4,12 @@ import cv2
 from cutils import crop
 
 CHAMPIONS_MAPPING = {
-    51: 'Caitlyn',
-    22: 'Ashe',
-    15: 'Sivir',
-    17: 'Teemo',
-    18: 'Tristana',
-    21: 'MissFortune',
+    51: 'caitlyn',
+    22: 'ashe',
+    15: 'sivir',
+    17: 'teemo',
+    18: 'tristana',
+    21: 'miss_fortune',
 }
 
 
