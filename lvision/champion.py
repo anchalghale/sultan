@@ -10,6 +10,7 @@ CHAMPIONS_MAPPING = {
     17: 'teemo',
     18: 'tristana',
     21: 'miss_fortune',
+    11: 'master_yi'
 }
 
 
